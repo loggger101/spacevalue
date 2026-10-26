@@ -75,9 +75,10 @@ far more. `tests/test_docs.py` holds this table to the code.
 At Earth's surface a commodity is worth its market price. Anywhere else it is
 worth the better of two fates:
 
-- **used there**: the launch cost avoided, times how good a substitute it is
-  for the same mass launched from Earth (its *in-space utility*, 0 to 1), less
-  what it costs to process on site; or
+- **used there**: its Earth price plus the launch cost it avoids, the launch
+  cost scaled by how good a substitute it is for the same mass launched from
+  Earth (its *in-space utility*, 0 to 1), less what it costs to process on
+  site; or
 - **shipped home**: its Earth price, less the cost of the trip down.
 
 Every row says which fate won (`value_route`) and, at a depot, how much of it
