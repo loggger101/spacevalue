@@ -17,9 +17,21 @@ and `spacevalue/quotes/` the recorded metal quotes. Rules:
   `spacevalue quotes record`. `SHA256SUMS` holds every file, and the CSVs are
   CRLF by rule (`.gitattributes`), because that is what the sums hash.
 - **The judgement tables are judgement.** `IN_SPACE_UTILITY` and its overrides
-  are engineering estimates. Overrides only run downward; `gto` takes `geo`'s
-  profile by reference (asserted). Every commodity needs a `_COMMODITY_CLASS`
-  entry (asserted at import), and every in-space destination a demand row.
+  are engineering estimates. Overrides only run downward; `mars_orbit`'s empty
+  override is deliberate (README, "The judgement in it"); `gto` takes `geo`'s
+  profile by reference (asserted). `_UTILITY_FAMILIES` holds each family at
+  one level at every destination (asserted). Every commodity needs a
+  `_COMMODITY_CLASS` entry (asserted at import), and every in-space
+  destination a demand row: a missing row once meant an unbounded market.
+- **A price used in space is the Earth price PLUS** `in_space_utility x` the
+  launch cost avoided, less processing (`in_space_price_usd_per_kg`). Never
+  replace the Earth price with the launch cost: v1.3.0 did, and threw the
+  material away. Shipped home it is the Earth price less the downleg, so a
+  commodity no depot wants is still worth something there.
+- **`annual_market_kg` is routed**: world production bounds a commodity flown
+  home, the depot's import budget one sold there. `_DEMAND_SHARE_BY_CLASS`
+  splits that budget; its bulk classes sum to 1 (asserted) and `trace` sits on
+  top of them.
 - **The library is quiet.** No printing, installing or directory creation at
   import; progress goes through spacecost's `say()`. Printed strings are ASCII
   (Windows gives a redirected stdout cp1252). `tests/test_rules.py` holds both.
