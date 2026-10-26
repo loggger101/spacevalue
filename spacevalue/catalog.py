@@ -1,56 +1,40 @@
 # -*- coding: utf-8 -*-
-"""mineral_value, Module 2 of the Asteroid Profitability Pipeline.
+"""What a kilogram of asteroid material is worth, and where it is sold.
 
-Builds a catalog of CURRENT market prices and bulk DENSITIES for every
-mineral / element that appears in Module 1's TAXONOMY_COMPOSITION table.
-Downstream profitability scoring multiplies asteroid mass × composition
-fraction × mineral_price to estimate $/asteroid.
+This was Stage 2 of economicspace, the asteroid-mining profitability pipeline
+(https://github.com/loggger101/economicspace), and its history comes with it:
+the module was `modules/mineral_value.py` there until data contract 1.16.0.
+
+It builds one table per delivery destination: every mineral and element that
+an asteroid composition can name, with its density, its elemental yields, and
+its price AT THAT DESTINATION.  A commodity sold on Earth is worth its
+terrestrial price.  One sold at a depot in space is worth the better of two
+fates: used there, where it is worth the launch it saves, or flown down to the
+terrestrial market, less the cost of the trip.  The delivery chains and the
+launch price come from spacecost.
+
+Prices come from three places:
+    - a recorded quote snapshot (`quote_snapshot`), the reproducible default
+      for anything published: COMEX gold, silver, platinum, palladium and
+      copper closes, recorded once and committed under spacevalue/quotes/
+    - yfinance live (`use_yfinance`), today's closes, which no later run can
+      reproduce; optional extra `spacevalue[live]`
+    - the reference table below, which prices everything the quotes do not:
+      USGS Mineral Commodity Summaries and LME figures for the base metals and
+      the trace PGMs, each stamped with `ref_price_date`, and the mineralogy
+      (Klein & Hurlbut, Mindat, Webmineral) that gives densities and yields
 
 Pipeline flow:
-    Fetch live prices  →  Merge with reference table  →  Validate  →  Export
+    Quotes (recorded or live)  ->  Merge with reference table  ->
+    Reprice for the destination  ->  Validate  ->  Export
 
-Active sources:
-    • yfinance  (Yahoo Finance)    - live futures prices for gold (GC=F),
-                                     silver (SI=F), platinum (PL=F),
-                                     palladium (PA=F), copper (HG=F).
-                                     Free, no API key.
-    • USGS Mineral Commodity      - curated fallback prices for the LME
-      Summaries + LME reference     metals (Ni, Co, Al, Pb, Zn, Sn, Fe ore)
-                                    and the trace PGMs that yfinance does
-                                    not expose (Rh, Ir, Ru, Os).  These are
-                                    stamped with `reference_date` so the
-                                    user knows how stale they are.
-    • In-pipeline mineralogy      - densities, chemical formulas, and the
-      reference (Klein & Hurlbut    relevant elemental yield fractions for
-       "Manual of Mineralogy"       every mineral named in the Module 1
-       + Mindat / Webmineral)       taxonomy table.  Physical constants; 
-                                    they do not change between runs.
-
-Adding a new mineral / element:
-    Drop a new row into MINERAL_REFERENCE below.  The fetcher / merger
-    work uniformly across however many entries you add.
+Adding a new mineral or element: add a row to MINERAL_REFERENCE below and
+give it a _COMMODITY_CLASS entry (asserted at import).
 """
 
-# ─────────────────────────────────────────────────────────────────────────────
-# INSTALLATION
-# ─────────────────────────────────────────────────────────────────────────────
-# Auto-installs missing packages.  Safe to re-run.
-try:
-    from . import _runtime
-except ImportError:                 # run as a script: modules/ is on sys.path
-    import _runtime
-
-_REQUIRED_PKGS = ["requests", "pandas", "numpy", "yfinance", "spacecost"]
-_runtime.install(_REQUIRED_PKGS)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# IMPORTS & CONFIGURATION
-# ─────────────────────────────────────────────────────────────────────────────
 import json
 import os
 import sys
-import warnings
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
@@ -59,28 +43,44 @@ import numpy as np
 import pandas as pd
 
 import spacecost
-import requests
-
-for _cat in (DeprecationWarning, FutureWarning, UserWarning):
-    warnings.filterwarnings("ignore", category=_cat)
-
-pd.set_option("display.max_columns", None)
-pd.set_option("display.float_format", "{:.4g}".format)
+from spacecost import quotes as _quotes
+from spacecost import say
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# ║                                                                           ║
-# ║   ★  USER SETTINGS, EDIT THESE TO TUNE THE PIPELINE  ★                  ║
-# ║                                                                           ║
-# ═════════════════════════════════════════════════════════════════════════════
+def _default_output_dir() -> str:
+    """Where a build writes, unless the caller says otherwise.
+
+    `SPACEVALUE_OUTPUT_DIR` wins when set, otherwise `./spacevalue_data` under
+    the working directory.
+    """
+    return (os.environ.get("SPACEVALUE_OUTPUT_DIR")
+            or os.path.join(os.getcwd(), "spacevalue_data"))
+
+
+# Where this package keeps its recorded metal quotes.
+QUOTES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "quotes")
+
+
 @dataclass
 class MineralValueConfig:
-    """User-editable configuration for the mineral-value catalog."""
+    """Configuration for one destination's mineral-value table."""
 
     # ─── SOURCE TOGGLES ──────────────────────────────────────────────────────
-    use_yfinance:        bool = True   # live futures prices via Yahoo Finance
+    # `use_yfinance` fetches today's COMEX closes.  Off by default: a library
+    # that reaches for the network when asked for a price is not reproducible,
+    # and a table built live cannot be built again tomorrow.
+    use_yfinance:        bool = False
     use_metals_api:      bool = True   # optional metals.dev free tier (DEMO key)
     use_reference_table: bool = True   # curated USGS / LME / mineralogy fallback
+
+    # A recorded set of metal quotes to price from, by name: one of the files
+    # in spacevalue/quotes/ without its ".csv", e.g. "metals-2026-10-07".  It
+    # gives the table the live closes would give, offline and the same on
+    # every run, and the table's `catalog_date` is the day the quotes were
+    # recorded.  "" prices the metals at their reference rows.  Setting this
+    # and `use_yfinance` together is refused, and metals.dev is not consulted
+    # when it is set, because its quotes are not recorded.
+    quote_snapshot:      str  = ""
 
     # ─── METALS.DEV (optional, off unless you supply a key) ──────────────────
     # Set to your real API key to enable.  Leaving it as "DEMO" causes the
@@ -147,16 +147,18 @@ class MineralValueConfig:
     # DELIVERY_DESTINATIONS and IN_SPACE_UTILITY below for the numbers, the
     # derivation, and which parts are judgement rather than measurement.
     #
-    # ⚠️  Module 4's CALC_CONFIG carries a delivery_destination of its own,
-    # and it must MATCH this one; it selects the mission architecture that
-    # actually delivers the cargo here.  Module 4 checks and warns.
+    # ⚠️  economicspace's Stage 4 carries a delivery_destination of its own,
+    # and it must MATCH the one a table was priced for; it selects the mission
+    # architecture that actually delivers the cargo there.  Every row carries
+    # the destination it was priced for, so a reader can check.
     delivery_destination: str = "earth_surface"
 
     # ─── NETWORK ─────────────────────────────────────────────────────────────
     request_timeout: int = 60   # seconds per HTTP request
 
     # ─── OUTPUT ──────────────────────────────────────────────────────────────
-    output_dir:       str = _runtime.DEFAULT_OUTPUT_DIR
+    # "" means $SPACEVALUE_OUTPUT_DIR, else ./spacevalue_data, at build time.
+    output_dir:       str = ""
     catalog_filename: str = "mineral_value_catalog.csv"
 
     # ─── PRICE UNITS ─────────────────────────────────────────────────────────
@@ -166,35 +168,27 @@ class MineralValueConfig:
     # `_usd_per_kg` suffix so the unit is unmistakable downstream.
     PRICE_UNIT: str = "USD/kg"
 
-    # ─── PIPELINE VERSION ────────────────────────────────────────────────────
+    # ─── DATA CONTRACT VERSION ───────────────────────────────────────────────
     # Stamped into every output CSV, and the only way to tell which code
-    # produced a given catalog.  BUMP IT when a change moves any number a run
+    # produced a given table.  BUMP IT when a change moves any number a build
     # produces.  The rule is ONE-DIRECTIONAL: changing a number means bumping,
-    # and a bump does NOT mean a number changed, which is why nothing may read
-    # a version as evidence that a result moved.
-    # THE CHANGELOG IS versions.md, NOT THIS COMMENT.  It used to be 267 lines
-    # of release notes sitting right here, a second copy of a record versions.md
-    # already held, which is the documentation form of the defect this project
-    # keeps cataloguing; it was also what the dashboard rendered as this field's
-    # help text, because ui_meta scrapes a field's comment block.  Moved out on
-    # 2026-09-02.  Two places to write, neither of them here:
-    #     versions.md > Releases            what the release did, and what it
-    #                                       measured to say so
-    #     versions.md > Module changelogs   this module's own stamp-by-stamp
-    #                                       record: Stage 2 changelog
-    pipeline_version: str = "1.16.0"
+    # and a bump does NOT mean a number changed, so nothing may read a version
+    # as evidence that a result moved.  It is not `spacevalue.__version__`,
+    # the package release, which moves for changes that alter no output byte.
+    # What each contract changed is CHANGELOG.md, not this comment: the
+    # dashboard economicspace builds scrapes a field's comment block as its
+    # help, and a changelog here was once 267 lines of it.
+    pipeline_version: str = "1.17.0"
 
     # ─── DISPLAY ─────────────────────────────────────────────────────────────
-    preview_rows:      int = 20   # rows per table in the end-of-run preview
-CONFIG = MineralValueConfig()
-os.makedirs(CONFIG.output_dir, exist_ok=True)
+    preview_rows:      int = 20   # rows per table in the CLI preview
 
-print(f"OK  Configuration loaded - output dir: {CONFIG.output_dir}")
-print(f"    Active sources : "
-      f"{', '.join(s for s, on in (('yfinance', CONFIG.use_yfinance), ('metals.dev', CONFIG.use_metals_api and CONFIG.metals_api_key != 'DEMO'), ('reference', CONFIG.use_reference_table)) if on)}")
-print(f"    Price unit     : {CONFIG.PRICE_UNIT}  (every numeric price column ends with _usd_per_kg)")
-print(f"    Delivery dest  : {CONFIG.delivery_destination}  "
-      f"(sets EVERY price - see DELIVERY_DESTINATIONS + IN_SPACE_UTILITY)")
+    def resolved_output_dir(self) -> str:
+        """`output_dir`, or the environment/CWD default when it is blank."""
+        return self.output_dir or _default_output_dir()
+
+
+CONFIG = MineralValueConfig()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -295,11 +289,11 @@ _REF_PRICE_DATE = "2026-05-29"
 # constant and every leg of that derivation lives in `spacecost.delivery`.
 #
 # ⚠️  THE NAMES BELOW STAY BOUND ON PURPOSE, they are not leftovers.
-# `campaign/worked_calculation.py` reaches `master._DELIVERY_LEGS`,
-# `master._LEO_USD_PER_KG` and `master.delivered_cost_usd_per_kg`, and carries
-# all three on its `BORROWED` register.  Re-exporting is what keeps that
-# reader working, so deleting an alias here is a breaking change for it rather
-# than a tidy-up.  `master.py` forwards each of them to this module.
+# economicspace's worked calculation reaches `_DELIVERY_LEGS`,
+# `_LEO_USD_PER_KG` and `delivered_cost_usd_per_kg` through its Stage 2
+# adapter, and carries all three on its `BORROWED` register.  Deleting an
+# alias here is a breaking change for it rather than a tidy-up;
+# tests/test_consumer_contract.py names them.
 #
 # WHAT MOVED AND WHAT IS STILL TYPED is documented in spacecost/delivery.py.
 # The short version: every chain delta-v is a DELTA_V_REFERENCE lookup now, so
@@ -2078,11 +2072,6 @@ MINERAL_REFERENCE: List[dict] = [
     },
 ]
 
-print(f"OK  Reference table ready - {len(MINERAL_REFERENCE)} entries "
-      f"({sum(1 for r in MINERAL_REFERENCE if r['kind'] == 'element')} elements / "
-      f"{sum(1 for r in MINERAL_REFERENCE if r['kind'] == 'mineral')} minerals)")
-
-
 # ─── EVERY COMMODITY MUST BE CLASSIFIED  (v1.7.1) ────────────────────────────
 # `annual_market_kg` reads the demand class through
 # `_COMMODITY_CLASS.get(name, "shielding")`, and an unrecognised name therefore
@@ -2109,11 +2098,68 @@ assert not _UNCLASSIFIED, (
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# YFINANCE FETCHER  (primary live-price source)
+# METAL QUOTES  (live from yfinance, or recorded)
 # ─────────────────────────────────────────────────────────────────────────────
-# Yahoo Finance front-month futures, fetched via the `yfinance` Python lib.
-# Returns one row per element with a `yfinance_ticker`; everything else is
-# omitted and falls through to the metals.dev / reference table sources.
+# Yahoo Finance front-month futures.  One row per element with a
+# `yfinance_ticker`; everything else is omitted and falls through to the
+# metals.dev / reference table sources.
+#
+# Live and recorded quotes take ONE conversion, `metal_prices_from_quotes`, so
+# a table built from a snapshot is the table those closes would have given
+# live.  The fetch itself is spacecost's `quotes.fetch_closes`, the same loop
+# for fuel and for metals: five days of history, the last non-blank close.
+
+def metal_tickers() -> Dict[str, str]:
+    """Ticker -> quote unit, for every reference row yfinance prices."""
+    return {e["yfinance_ticker"]: e["yfinance_unit"] for e in MINERAL_REFERENCE
+            if e.get("yfinance_ticker")}
+
+
+def metal_prices_from_quotes(quotes: Dict[str, "_quotes.Quote"]) -> pd.DataFrame:
+    """The live-price frame from closes, however they were obtained."""
+    rows = []
+    for entry in MINERAL_REFERENCE:
+        ticker = entry.get("yfinance_ticker")
+        if not ticker:
+            continue
+        q = quotes.get(ticker)
+        if q is None:
+            continue
+        unit = entry.get("yfinance_unit")
+        if q.unit != unit:
+            say(f"     WARN  {entry['name']:11s} ({ticker}) - quoted per "
+                f"{q.unit!r}, converted per {unit!r}; skipped")
+            continue
+
+        last_close = q.close
+        last_date  = q.close_date
+
+        if unit == "troy_oz":
+            price_kg = _per_troy_oz_to_per_kg(last_close)
+        elif unit == "lb":
+            price_kg = _per_lb_to_per_kg(last_close)
+        elif unit == "tonne":
+            price_kg = _per_tonne_to_per_kg(last_close)
+        else:
+            say(f"     WARN  {entry['name']:11s} ({ticker}) - unknown unit {unit!r}")
+            continue
+
+        rows.append({
+            "name":              entry["name"],
+            "live_price_usd_per_kg": price_kg,
+            "live_price_date":   last_date,
+            "live_price_source": f"{q.source}:{ticker}",
+        })
+        say(f"     OK  {entry['name']:11s} ({ticker}) "
+              f"= {last_close:>10,.2f} USD/{unit:7s} "
+              f"-> {price_kg:>12,.2f} USD/kg  [{last_date}]")
+
+    if not rows:
+        say("     WARN  no usable metal quotes")
+        return pd.DataFrame()
+
+    return pd.DataFrame(rows)
+
 
 def fetch_yfinance(config: MineralValueConfig) -> pd.DataFrame:
     """
@@ -2124,62 +2170,27 @@ def fetch_yfinance(config: MineralValueConfig) -> pd.DataFrame:
     entry's `yfinance_unit`.  Returns an empty DataFrame if yfinance fails
     entirely; individual tickers that fail are logged but don't abort.
     """
-    print("\n  yfinance  (Yahoo Finance) - fetching live futures ...")
+    say("\n  yfinance  (Yahoo Finance) - fetching live futures ...")
+    rows, failed = _quotes.fetch_closes(metal_tickers())
+    for problem in failed:
+        say(f"     FAIL  {problem}")
+    return metal_prices_from_quotes(_quotes.closes_by_ticker(rows))
 
-    try:
-        import yfinance as yf
-    except ImportError:
-        print("     FAIL  yfinance not importable - skipped")
-        return pd.DataFrame()
 
-    rows = []
-    for entry in MINERAL_REFERENCE:
-        ticker = entry.get("yfinance_ticker")
-        if not ticker:
-            continue
+def load_metal_snapshot(name: str) -> List["_quotes.Quote"]:
+    """A recorded metal snapshot, refused if it lacks a ticker a row needs."""
+    rows = _quotes.load_snapshot(name, QUOTES_DIR)
+    bad = _quotes.missing(rows, metal_tickers())
+    if bad:
+        raise ValueError(f"snapshot {name}: " + "; ".join(bad))
+    return rows
 
-        try:
-            # `period="5d"` is short enough to be fast yet long enough to
-            # survive a single missing close (weekends, holidays).  Take
-            # the most recent non-NaN close.
-            hist = yf.Ticker(ticker).history(period="5d", auto_adjust=False)
-            closes = hist["Close"].dropna() if "Close" in hist else pd.Series(dtype=float)
-            if closes.empty:
-                print(f"     WARN  {entry['name']:11s} ({ticker}) - no close data")
-                continue
 
-            last_close = float(closes.iloc[-1])
-            last_date  = closes.index[-1].strftime("%Y-%m-%d")
-
-            unit = entry.get("yfinance_unit")
-            if unit == "troy_oz":
-                price_kg = _per_troy_oz_to_per_kg(last_close)
-            elif unit == "lb":
-                price_kg = _per_lb_to_per_kg(last_close)
-            elif unit == "tonne":
-                price_kg = _per_tonne_to_per_kg(last_close)
-            else:
-                print(f"     WARN  {entry['name']:11s} ({ticker}) - unknown unit {unit!r}")
-                continue
-
-            rows.append({
-                "name":              entry["name"],
-                "live_price_usd_per_kg": price_kg,
-                "live_price_date":   last_date,
-                "live_price_source": f"yfinance:{ticker}",
-            })
-            print(f"     OK  {entry['name']:11s} ({ticker}) "
-                  f"= {last_close:>10,.2f} USD/{unit:7s} "
-                  f"-> {price_kg:>12,.2f} USD/kg  [{last_date}]")
-
-        except Exception as exc:
-            print(f"     FAIL  {entry['name']:11s} ({ticker}) - {type(exc).__name__}: {exc}")
-
-    if not rows:
-        print("     WARN  yfinance returned no usable rows")
-        return pd.DataFrame()
-
-    return pd.DataFrame(rows)
+def snapshot_metal_prices(config: MineralValueConfig) -> pd.DataFrame:
+    """The same frame as `fetch_yfinance`, from `config.quote_snapshot`."""
+    say(f"\n  Recorded metal quotes - snapshot {config.quote_snapshot} ...")
+    rows = load_metal_snapshot(config.quote_snapshot)
+    return metal_prices_from_quotes(_quotes.closes_by_ticker(rows))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -2198,12 +2209,13 @@ def fetch_metals_dev(config: MineralValueConfig) -> pd.DataFrame:
     Returns an empty DataFrame on any HTTP / parse failure.
     """
     if config.metals_api_key == "DEMO" or not config.metals_api_key:
-        print("\n  metals.dev - skipped (no API key set; edit MineralValueConfig.metals_api_key)")
+        say("\n  metals.dev - skipped (no API key set; edit MineralValueConfig.metals_api_key)")
         return pd.DataFrame()
 
-    print("\n  metals.dev - fetching live LME / spot prices ...")
+    say("\n  metals.dev - fetching live LME / spot prices ...")
 
     try:
+        import requests
         r = requests.get(
             config.metals_api_url,
             params={
@@ -2216,12 +2228,12 @@ def fetch_metals_dev(config: MineralValueConfig) -> pd.DataFrame:
         r.raise_for_status()
         payload = r.json()
     except Exception as exc:
-        print(f"     FAIL  metals.dev failed: {type(exc).__name__}: {exc}")
+        say(f"     FAIL  metals.dev failed: {type(exc).__name__}: {exc}")
         return pd.DataFrame()
 
     quotes = payload.get("metals") or payload.get("rates") or {}
     if not quotes:
-        print("     WARN  metals.dev returned no `metals` payload")
+        say("     WARN  metals.dev returned no `metals` payload")
         return pd.DataFrame()
 
     date = payload.get("date") or payload.get("timestamp_iso") or datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -2244,7 +2256,7 @@ def fetch_metals_dev(config: MineralValueConfig) -> pd.DataFrame:
             "live_price_date":   str(date)[:10],
             "live_price_source": f"metals.dev:{key}",
         })
-        print(f"     OK  {entry['name']:11s} = {usd_per_toz:>10,.2f} USD/troy_oz "
+        say(f"     OK  {entry['name']:11s} = {usd_per_toz:>10,.2f} USD/troy_oz "
               f"-> {price_kg:>12,.2f} USD/kg")
 
     return pd.DataFrame(rows)
@@ -2259,7 +2271,7 @@ def fetch_metals_dev(config: MineralValueConfig) -> pd.DataFrame:
 
 def fetch_reference_table(config: MineralValueConfig) -> pd.DataFrame:
     """Static USGS / LME / mineralogy reference data, always available."""
-    print("\n  Reference table - loading curated prices + densities ...")
+    say("\n  Reference table - loading curated prices + densities ...")
 
     # Every row here carries its TERRESTRIAL price.  The in-space repricing is
     # applied once, uniformly, after the merge; see apply_delivery_destination,
@@ -2286,7 +2298,7 @@ def fetch_reference_table(config: MineralValueConfig) -> pd.DataFrame:
         })
 
     df = pd.DataFrame(rows)
-    print(f"     OK  {len(df)} reference rows loaded")
+    say(f"     OK  {len(df)} reference rows loaded")
     return df
 
 
@@ -2317,13 +2329,13 @@ def apply_delivery_destination(
     dest_key = str(config.delivery_destination or "").strip().lower()
     dest     = value_for_destination(dest_key)
     if dest["usd_per_kg"] <= 0.0:
-        print(f"\n  Delivery destination '{dest_key}' - terrestrial prices stand.")
+        say(f"\n  Delivery destination '{dest_key}' - terrestrial prices stand.")
         return catalog
 
     downleg = downleg_cost_usd_per_kg(dest_key)
-    print(f"\n   Repricing for delivery to '{dest_key}' ...")
-    print(f"     Launch cost avoided : ${dest['usd_per_kg']:,.0f}/kg  ({dest['basis']})")
-    print(f"     Downleg to surface  : ${downleg:,.0f}/kg  "
+    say(f"\n   Repricing for delivery to '{dest_key}' ...")
+    say(f"     Launch cost avoided : ${dest['usd_per_kg']:,.0f}/kg  ({dest['basis']})")
+    say(f"     Downleg to surface  : ${downleg:,.0f}/kg  "
           f"(capsule + TPS + recovery, per kg delivered)")
 
     catalog = catalog.copy()
@@ -2388,7 +2400,7 @@ def apply_delivery_destination(
     n_use  = routes.count("used in space")
     n_ship = routes.count("shipped to Earth")
     n_zero = int((pd.to_numeric(catalog["price_usd_per_kg"], errors="coerce") == 0).sum())
-    print(f"     OK  {n_use} sold in space, {n_ship} shipped down "
+    say(f"     OK  {n_use} sold in space, {n_ship} shipped down "
           f"({n_zero} worth less than the freight)")
     return catalog
 
@@ -2408,7 +2420,7 @@ def merge_sources(
     live source to provide a quote for a given material wins, and the
     reference fallback fills anything still missing.
     """
-    print("\n  Merging sources ...")
+    say("\n  Merging sources ...")
 
     catalog = reference.copy()
     catalog["live_price_usd_per_kg"] = pd.NA
@@ -2442,9 +2454,9 @@ def merge_sources(
     n_live = int((catalog["price_basis"] == "live").sum())
     n_ref  = int((catalog["price_basis"] == "reference").sum())
     n_unp  = int((catalog["price_basis"] == "unpriced").sum())
-    print(f"     Live prices  : {n_live:>3} entries")
-    print(f"     Reference    : {n_ref:>3} entries")
-    print(f"     Unpriced     : {n_unp:>3} entries")
+    say(f"     Live prices  : {n_live:>3} entries")
+    say(f"     Reference    : {n_ref:>3} entries")
+    say(f"     Unpriced     : {n_unp:>3} entries")
 
     return catalog
 
@@ -2454,7 +2466,7 @@ def merge_sources(
 # ─────────────────────────────────────────────────────────────────────────────
 def validate(catalog: pd.DataFrame) -> pd.DataFrame:
     """Light sanity checks, print warnings, never drop rows."""
-    print("\n  Validating catalog ...")
+    say("\n  Validating catalog ...")
 
     # ── Unit normalisation guard ─────────────────────────────────────────────
     # Every numeric price column MUST be USD per kilogram.  This block both
@@ -2484,12 +2496,12 @@ def validate(catalog: pd.DataFrame) -> pd.DataFrame:
         suspicious = catalog[out_of_band]
         if not suspicious.empty:
             unit_ok = False
-            print(f"     WARN  {len(suspicious)} rows in {col} outside USD/kg sanity band "
+            say(f"     WARN  {len(suspicious)} rows in {col} outside USD/kg sanity band "
                   f"[0.001, 1e7] - possible unit-conversion bug:")
             for _, r in suspicious.iterrows():
-                print(f"          {r['name']}: {r[col]}")
+                say(f"          {r['name']}: {r[col]}")
     if unit_ok:
-        print(f"     OK  Unit check: all price columns are USD/kg "
+        say(f"     OK  Unit check: all price columns are USD/kg "
               f"(checked {', '.join(c for c in PRICE_COLS if c in catalog.columns)})")
 
     # Density should be positive and physically plausible (< 25 g/cm³, the
@@ -2500,9 +2512,9 @@ def validate(catalog: pd.DataFrame) -> pd.DataFrame:
         | (catalog["density_gcm3"] > 25)
     ]
     if not bad_density.empty:
-        print(f"     WARN  {len(bad_density)} rows with implausible density:")
+        say(f"     WARN  {len(bad_density)} rows with implausible density:")
         for _, r in bad_density.iterrows():
-            print(f"          {r['name']}: {r['density_gcm3']} g/cm^3")
+            say(f"          {r['name']}: {r['density_gcm3']} g/cm^3")
 
     # Every mineral should reference at least one known element via `yields`
     # (otherwise Module 3 can't value it).  Bulk silicates legitimately have
@@ -2512,13 +2524,13 @@ def validate(catalog: pd.DataFrame) -> pd.DataFrame:
         try:
             ymap = json.loads(r["yields_json"] or "{}")
         except json.JSONDecodeError:
-            print(f"     FAIL  {r['name']}: malformed yields_json")
+            say(f"     FAIL  {r['name']}: malformed yields_json")
             continue
         unknown = set(ymap) - known_elements
         if unknown:
-            print(f"     WARN  {r['name']}: yields reference unknown elements {sorted(unknown)}")
+            say(f"     WARN  {r['name']}: yields reference unknown elements {sorted(unknown)}")
 
-    print(f"     OK  Validation complete")
+    say(f"     OK  Validation complete")
     return catalog
 
 
@@ -2529,25 +2541,40 @@ def build_mineral_value_catalog(
     config: MineralValueConfig = CONFIG,
 ) -> pd.DataFrame:
     """
-    Run the full mineral-value pipeline:
-      1. Fetch live prices (yfinance, optionally metals.dev)
+    Build one destination's mineral-value table and write it:
+      1. Quotes: a recorded snapshot, or live (yfinance, optionally metals.dev)
       2. Load the curated reference table
-      3. Merge; live wins, reference fills gaps
-      4. Validate
+      3. Merge; quotes win, reference fills gaps
+      4. Reprice for the destination, validate
       5. Sort, tag, export
     """
     t0 = datetime.now()
 
-    print("=" * 65)
-    print("    MINERAL VALUE PIPELINE - MODULE 2")
-    print(f"      {t0.strftime('%Y-%m-%d %H:%M:%S')}  |  v{config.pipeline_version}")
-    print("=" * 65)
+    say("=" * 65)
+    say("    SPACEVALUE - MINERAL VALUE TABLE")
+    say(f"      {t0.strftime('%Y-%m-%d %H:%M:%S')}  |  v{config.pipeline_version}")
+    say("=" * 65)
 
-    # ── Step 1, Live-price fetchers (in priority order) ─────────────────────
-    live_frames = [
-        fetch_yfinance(config)    if config.use_yfinance    else pd.DataFrame(),
-        fetch_metals_dev(config)  if config.use_metals_api  else pd.DataFrame(),
-    ]
+    # ── Step 1, Quotes (in priority order) ──────────────────────────────────
+    if config.use_yfinance and config.quote_snapshot:
+        raise ValueError(
+            "use_yfinance and quote_snapshot are both set: choose live quotes "
+            "or the recorded snapshot %r, not both" % config.quote_snapshot)
+    if config.quote_snapshot:
+        live_frames = [snapshot_metal_prices(config)]
+        if config.use_metals_api and config.metals_api_key not in ("", "DEMO"):
+            say("\n  metals.dev - skipped: a recorded build reads only "
+                "recorded quotes")
+        # A recorded build carries the day its quotes were recorded, so two
+        # builds from one snapshot are the same bytes whatever day they run.
+        catalog_date = _quotes.recorded_date(
+            load_metal_snapshot(config.quote_snapshot))
+    else:
+        live_frames = [
+            fetch_yfinance(config)    if config.use_yfinance    else pd.DataFrame(),
+            fetch_metals_dev(config)  if config.use_metals_api  else pd.DataFrame(),
+        ]
+        catalog_date = t0.strftime("%Y-%m-%d")
 
     # ── Step 2, Reference spine ─────────────────────────────────────────────
     reference = (
@@ -2555,7 +2582,7 @@ def build_mineral_value_catalog(
         if config.use_reference_table else pd.DataFrame()
     )
     if reference.empty:
-        print("\nFAIL  Pipeline aborted - reference table disabled and no live data spine")
+        say("\nFAIL  Pipeline aborted - reference table disabled and no live data spine")
         return pd.DataFrame()
 
     # ── Step 3, Merge ───────────────────────────────────────────────────────
@@ -2571,8 +2598,8 @@ def build_mineral_value_catalog(
     catalog = validate(catalog)
 
     # ── Step 5, Metadata + sort ─────────────────────────────────────────────
-    # How much of each commodity the market can absorb per year, Module 4
-    # uses it to apply a demand curve rather than selling any quantity at spot.
+    # How much of each commodity the market can absorb per year; a mission
+    # model uses it to cap sales rather than selling any quantity at spot.
     # v1.7.0: routed; a commodity sold by flying it down saturates the
     # TERRESTRIAL market, not the destination's import budget.
     _routes = (catalog["value_route"] if "value_route" in catalog.columns
@@ -2583,7 +2610,7 @@ def build_mineral_value_catalog(
         for n, r in zip(catalog["name"], _routes)
     ]
 
-    catalog["catalog_date"]         = t0.strftime("%Y-%m-%d")
+    catalog["catalog_date"]         = catalog_date
     catalog["pipeline_version"]     = config.pipeline_version
     # Stamped into every row: the water price, and therefore the whole
     # downstream ranking, is meaningless without knowing which destination
@@ -2595,13 +2622,15 @@ def build_mineral_value_catalog(
     ).reset_index(drop=True)
 
     # ── Step 6, Save ────────────────────────────────────────────────────────
-    out_path = os.path.join(config.output_dir, config.catalog_filename)
+    out_dir = config.resolved_output_dir()
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, config.catalog_filename)
     # lineterminator is pinned because pandas defaults it to os.linesep,
     # which makes a catalog written on Linux differ from the same catalog
     # written on Windows in every line, for no model reason.  CRLF is the
     # existing Windows output, so pinning it changes nothing here.
     catalog.to_csv(out_path, index=False, lineterminator="\r\n")
-    print(f"\n       Catalog saved -> {out_path}")
+    say(f"\n       Catalog saved -> {out_path}")
 
     # ── Summary ──────────────────────────────────────────────────────────────
     elapsed = (datetime.now() - t0).total_seconds()
@@ -2614,17 +2643,19 @@ def build_mineral_value_catalog(
               if "live_price_source" in catalog.columns else 0)
     live_on = bool(config.use_yfinance or (
         config.use_metals_api and config.metals_api_key not in ("", "DEMO")))
-    print("\n" + "=" * 65)
-    print("  OK  MINERAL VALUE CATALOG COMPLETE")
-    print(f"      Entries  : {len(catalog):,}")
-    print(f"      Live     : {n_live:,} quoted today, the rest reference rows")
-    print(f"      Columns  : {len(catalog.columns)}")
-    print(f"      Elapsed  : {elapsed:.1f}s")
+    say("\n" + "=" * 65)
+    say("  OK  MINERAL VALUE CATALOG COMPLETE")
+    say(f"      Entries  : {len(catalog):,}")
+    say(f"      Quoted   : {n_live:,} from "
+        + (f"snapshot {config.quote_snapshot}" if config.quote_snapshot
+           else "today's markets") + ", the rest reference rows")
+    say(f"      Columns  : {len(catalog.columns)}")
+    say(f"      Elapsed  : {elapsed:.1f}s")
     if live_on and n_live == 0:
-        print("  WARN  a live price source was on and quoted NOTHING: every price")
-        print("        is a reference row.  Read the FAIL/WARN lines above before")
-        print("        quoting a level from this catalog.")
-    print("=" * 65)
+        say("  WARN  a live price source was on and quoted NOTHING: every price")
+        say("        is a reference row.  Read the FAIL/WARN lines above before")
+        say("        quoting a level from this catalog.")
+    say("=" * 65)
 
     return catalog
 
@@ -2678,49 +2709,3 @@ def mineral_to_element_value(
             continue
         total += float(fraction) * elem_price
     return total if total > 0 else None
-
-
-print("\nOK  Helper utilities available:")
-print("    lookup_mineral(catalog, 'gold')")
-print("    value_per_kg(catalog, 'platinum')")
-print("    mineral_to_element_value(catalog, 'nickel-iron')")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# RUN & PREVIEW
-# ─────────────────────────────────────────────────────────────────────────────
-if __name__ == "__main__":
-
-    if not _runtime.confirm_overwrite(
-            [os.path.join(CONFIG.output_dir, CONFIG.catalog_filename)],
-            "Stage 2 re-fetches live metal prices and re-prices every commodity."):
-        print("  Cancelled; nothing was fetched and nothing was written.")
-        sys.exit(1)
-
-    catalog = build_mineral_value_catalog(CONFIG)
-
-    if not catalog.empty:
-
-        PREVIEW_COLS = [
-            "name", "kind", "formula", "density_gcm3",
-            "price_usd_per_kg", "price_basis",
-            "live_price_source", "live_price_date",
-            "ref_price_date",
-        ]
-        show = [c for c in PREVIEW_COLS if c in catalog.columns]
-
-        print(f"\n{'='*75}")
-        print(f"    MINERAL VALUE CATALOG - first {CONFIG.preview_rows} entries")
-        print(f"{'='*75}")
-        print(catalog[show].head(CONFIG.preview_rows).to_string(index=False))
-
-        # ── Mineral implied-value cross-check ─────────────────────────────────────
-        print(f"\n{'='*75}")
-        print("    MINERAL IMPLIED VALUE (USD/kg, computed from elemental yields)")
-        print(f"{'='*75}")
-        for _, r in catalog[catalog["kind"] == "mineral"].iterrows():
-            implied = mineral_to_element_value(catalog, r["name"])
-            if implied is None:
-                print(f"  {r['name']:18s} -  (no yields defined)")
-            else:
-                print(f"  {r['name']:18s}  implied ~ {implied:>14,.2f}  USD/kg")
