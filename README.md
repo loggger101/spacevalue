@@ -34,12 +34,22 @@ spacevalue quotes list
 
 Or skip the code and download a table. Every
 [release](https://github.com/loggger101/spacevalue/releases) tagged
-`prices-YYYY-MM-DD` carries all eight as CSVs.
+`prices-YYYY-MM-DD` carries all eight as CSVs, which pandas reads straight
+from the release:
+
+```python
+import pandas as pd
+
+url = ("https://github.com/loggger101/spacevalue/releases/download/"
+       "prices-2026-10-26/mineral_value_catalog.cislunar.csv")
+table = pd.read_csv(url)
+```
 
 ## Contents
 
 - [The eight destinations](#the-eight-destinations)
 - [How a price is made](#how-a-price-is-made)
+- [What a row holds](#what-a-row-holds)
 - [Prices come from recorded quotes](#prices-come-from-recorded-quotes)
 - [Price releases](#price-releases)
 - [Two version numbers](#two-version-numbers)
@@ -67,8 +77,9 @@ cheapest LEO price a buyer can book, and adds the stages the chain throws away.
 | `mars_surface` | 186,306 | 4,400 m/s plus aeroentry |
 
 The two surface figures are lower bounds. They price industrial-scale
-transport with no development cost and no cadence limit. Real lunar delivery today costs
-far more. `tests/test_docs.py` holds this table to the code.
+transport with no development cost and no cadence limit. Real lunar delivery
+today costs far more: a commercial lander charges on the order of $1M/kg.
+`tests/test_docs.py` holds this table to the code.
 
 ## How a price is made
 
@@ -89,6 +100,29 @@ import budget, split across commodity classes.
 A mineral is priced through what it yields when refined: nickel-iron through
 its iron, nickel, cobalt, platinum-group and trace metals, troilite through
 its iron and sulfur. The yields are in `yields_json` on every row.
+
+## What a row holds
+
+One row per mineral or element in the reference table, and the same columns
+at every destination. The ones you will read most:
+
+| column | what it holds |
+|---|---|
+| `price_usd_per_kg` | the price at this destination |
+| `value_route` | `used in space` or `shipped to Earth`, whichever paid more |
+| `terrestrial_price_usd_per_kg` | the Earth price it started from |
+| `in_space_utility` | how good a substitute it is for launched mass, 0 to 1 |
+| `downleg_cost_usd_per_kg` | the trip home, taken off when it is shipped there |
+| `in_space_processing_usd_per_kg` | the on-site processing, taken off when it is used there |
+| `annual_market_kg` | how many kilograms a year that market can take |
+| `price_basis` | at Earth's surface `live` (a futures close), `reference` or `unpriced`; elsewhere `derived-in-space` |
+| `ref_price_date` | the date of the reference figure behind the row |
+| `catalog_date` | the day the metal quotes were recorded |
+| `yields_json` | for a mineral, kilograms of each element per kilogram refined |
+| `notes` | where the row's number comes from |
+
+`pipeline_version` and `delivery_destination` are stamped on every row, so a
+table that has lost its filename still says what it is.
 
 ## Prices come from recorded quotes
 
@@ -113,8 +147,7 @@ price is a new file. The table's `catalog_date` is the day the quotes were
 recorded, not the day you built it.
 
 `metals-2026-10-07` was made differently. Nobody recorded those closes at the
-time; economicspace's tables of that date kept only the
-converted $/kg. Each of the five converts back to exactly one close that
+time; economicspace's tables of that date kept only the converted $/kg. Each of the five converts back to exactly one close that
 reproduces it bit for bit, so that is what the snapshot holds, and its `note`
 column says where it came from.
 
@@ -179,8 +212,9 @@ ascent away.
 The demand ceilings at a depot are sourced where a source exists (the GEO
 ceiling counts the active geostationary satellites) and are estimates
 elsewhere, with the published lunar propellant forecasts recorded beside the
-cislunar and lunar ones as anchors rather than used as values. A commodity with no in-space market is not worthless at a depot: it
-is worth its Earth price less the trip home.
+cislunar and lunar ones as anchors rather than used as values. A commodity
+with no in-space market is not worthless at a depot: it is worth its Earth
+price less the trip home.
 
 ## Layout
 

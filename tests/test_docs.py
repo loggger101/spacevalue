@@ -38,3 +38,14 @@ def test_each_readme_delta_v_is_the_chain_total():
             continue
         row = re.search(r"^\| `%s` \|[^\n]*" % name, text, re.M).group(0)
         assert "{:,.0f} m/s".format(dv) in row, (name, row)
+
+
+def test_every_column_the_readme_names_is_a_column():
+    text = open(os.path.join(ROOT, "README.md"), encoding="utf-8").read()
+    section = text.split("## What a row holds", 1)[1].split("\n## ", 1)[0]
+    named = set(re.findall(r"^\| `([a-z_]+)` \|", section, re.M))
+    named |= set(re.findall(r"`([a-z_]+)` and `([a-z_]+)` are stamped", section)[0])
+    fixture = os.path.join(ROOT, "tests", "data", "prices-2026-10-07",
+                           "mineral_value_catalog.leo.csv")
+    header = open(fixture, encoding="utf-8").readline().strip().split(",")
+    assert named and named <= set(header), sorted(named - set(header))

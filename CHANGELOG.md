@@ -29,6 +29,16 @@ code.
 
 ## Package releases
 
+### Unreleased
+
+No code or number changed.
+
+- README: a "What a row holds" section naming the columns most readers want,
+  held to the fixture's header by `tests/test_docs.py`, and how to read a
+  release's CSV with pandas without installing anything.
+- pyproject: the Python versions CI runs, an Issues link, and economicspace's
+  link no longer labelled "Upstream", since it is the consumer.
+
 ### 0.1.0 - 2026-10-26
 
 The first release, split out of economicspace, where this was Stage 2
