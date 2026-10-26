@@ -8,7 +8,11 @@ name = "spacevalue"
 dynamic = ["version"]
 description = "What a kilogram of asteroid material is worth, and where it is sold: mineral and element prices for Earth's surface and seven destinations in space, from recorded market quotes, published as reproducible price releases."
 readme = "README.md"
-requires-python = ">=3.9"
+# 3.12, because the tables depend on it: Python 3.12 made sum() over floats
+# compensated, and two alloy yields (taenite and tetrataenite iron) are sums,
+# so 3.11 and earlier write them one bit differently.  The fixtures are the
+# 3.12+ answer, which is what economicspace measured on.
+requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Logan M Edwards" }]

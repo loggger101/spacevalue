@@ -49,6 +49,10 @@ The first release, split out of economicspace, where this was Stage 2
   a global warnings filter, pandas display options.
 - Depends on spacecost v0.14.0, which carries the delivery chains, the launch
   price and the snapshot code (`spacecost.quotes`).
+- Requires Python 3.12. Before 3.12, `sum()` over floats was not compensated,
+  and the iron yields of taenite and tetrataenite, which are sums, came out one
+  bit different; CI found it on its 3.9 legs. The tables are the 3.12+ answer,
+  which is the one economicspace measured on.
 - The proof: built from `metals-2026-10-07`, all eight destinations equal
   economicspace's mineral_value 1.16.0 fed the same closes, and the seven it
   froze at 1.15.0 match those files byte for byte once the stamp is swapped.

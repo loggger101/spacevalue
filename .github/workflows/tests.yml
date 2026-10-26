@@ -10,22 +10,16 @@ jobs:
   test:
     # Windows is where the fixtures were written.  Linux and macOS are where a
     # different C library's exp() could round the last bit of an in-space
-    # price differently; test_reproduces.py names the columns if it does.
+    # price differently; on the first run they matched byte for byte, and
+    # test_reproduces.py names the columns if that ever changes.
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.9", "3.12", "3.14"]
-        # actions/python-versions builds 3.9 for Ubuntu 22.04 and 24.04 only,
-        # and ubuntu-latest moved past them on 2026-10-19 (the note spacecost,
-        # samebytes and quietqueue carry), so the floor leg runs on 24.04.
-        exclude:
-          - os: ubuntu-latest
-            python-version: "3.9"
-        include:
-          - os: ubuntu-24.04
-            python-version: "3.9"
+        # 3.12 is the floor (pyproject says why: sum() over floats changed
+        # there, and two alloy yields are sums).
+        python-version: ["3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6

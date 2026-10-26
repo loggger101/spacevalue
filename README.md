@@ -147,10 +147,11 @@ same way it installs a published asteroid catalog as its Stage 1: it pins a
 tag, refuses a data contract it was not written against, and checks every byte
 before anything on disk changes.
 
-The in-space prices pass through the rocket equation and so through the C
-library's `exp`, which is not promised to round the last bit the same way on
-every platform. The tables are committed in `tests/data/` as written on
-Windows, and the test suite rebuilds them on Windows, Linux and macOS.
+The tables are committed in `tests/data/` as written on Windows, and the test
+suite rebuilds them byte for byte on Windows, Linux and macOS. It needs Python
+3.12 or later, for a concrete reason: 3.12 made `sum()` over floats
+compensated, two alloy yields (the iron in taenite and tetrataenite) are sums,
+and on 3.11 they come out one bit different.
 
 ## Two version numbers
 
