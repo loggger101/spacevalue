@@ -19,11 +19,19 @@ authors = [{ name = "Logan M Edwards" }]
 keywords = [
     "asteroid-mining", "space-resources", "commodity-prices", "isru",
     "mineral-economics", "cislunar", "reference-data", "reproducibility",
+    "moon", "mars", "metal-prices",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Environment :: Console",
     "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Office/Business :: Financial",
 ]
@@ -46,7 +54,10 @@ test = ["pytest>=7.0"]
 Repository = "https://github.com/loggger101/spacevalue"
 Changelog = "https://github.com/loggger101/spacevalue/blob/main/CHANGELOG.md"
 Releases = "https://github.com/loggger101/spacevalue/releases"
-"Upstream project" = "https://github.com/loggger101/economicspace"
+Issues = "https://github.com/loggger101/spacevalue/issues"
+# Not upstream: economicspace is where this came from, and it now installs
+# a price release from here as its Stage 2.
+economicspace = "https://github.com/loggger101/economicspace"
 
 [project.scripts]
 spacevalue = "spacevalue.cli:main"

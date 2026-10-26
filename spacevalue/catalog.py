@@ -133,7 +133,7 @@ class MineralValueConfig:
     #                     brakes most of the arrival, but the tug, aeroshell and
     #                     lander are all expended (85% of the price).
     #
-    # ⚠️  The two surface figures are MARGINAL-TRANSPORT LOWER BOUNDS.  They
+    # The two surface figures are MARGINAL-TRANSPORT LOWER BOUNDS.  They
     # price the propellant and stages needed to move a kilogram, on the
     # cheapest LEO price a buyer can book today (Falcon Heavy expendable,
     # spacecost v0.4.0), with no first-of-kind development, no programme
@@ -147,7 +147,7 @@ class MineralValueConfig:
     # DELIVERY_DESTINATIONS and IN_SPACE_UTILITY below for the numbers, the
     # derivation, and which parts are judgement rather than measurement.
     #
-    # ⚠️  economicspace's Stage 4 carries a delivery_destination of its own,
+    # economicspace's Stage 4 carries a delivery_destination of its own,
     # and it must MATCH the one a table was priced for; it selects the mission
     # architecture that actually delivers the cargo there.  Every row carries
     # the destination it was priced for, so a reader can check.
@@ -288,7 +288,7 @@ _REF_PRICE_DATE = "2026-05-29"
 # ladder in Module 3's DELTA_V_REFERENCE, and from a real launch price.  Every
 # constant and every leg of that derivation lives in `spacecost.delivery`.
 #
-# ⚠️  THE NAMES BELOW STAY BOUND ON PURPOSE, they are not leftovers.
+# THE NAMES BELOW STAY BOUND ON PURPOSE, they are not leftovers.
 # economicspace's worked calculation reaches `_DELIVERY_LEGS`,
 # `_LEO_USD_PER_KG` and `delivered_cost_usd_per_kg` through its Stage 2
 # adapter, and carries all three on its `BORROWED` register.  Deleting an
@@ -311,7 +311,7 @@ _REF_PRICE_DATE = "2026-05-29"
 # and the output notes read it rather than typing it.
 _LEO_USD_PER_KG = spacecost.LEO_LAUNCH_USD_PER_KG
 
-# The leg chains.  ⚠️  `None` and `[]` are DIFFERENT and both are used:
+# The leg chains.  `None` and `[]` are DIFFERENT and both are used:
 # `earth_surface` has no chain and avoids no launch, `leo` has an EMPTY chain
 # and avoids the whole LEO price.  `_build_destination_table` below tests
 # `is None` for exactly that reason, and a truthiness test there would price
@@ -335,7 +335,7 @@ _EARTH_SURFACE_WATER_USD_PER_KG = 0.001
 # sentence is describing, not retyped beside it: if a `DELTA_V_REFERENCE` row
 # moves, the chain moves and the sentence moves with it.
 #
-# ⚠️  The four figures that are NOT the chain are named constants with their
+# The four figures that are NOT the chain are named constants with their
 # citations, rather than digits buried mid-sentence, so a reader can see at a
 # glance which numbers this table asserts and which it derives.  They are
 # comparisons and context, not terms in the price.
@@ -476,7 +476,7 @@ downleg_cost_usd_per_kg = spacecost.downleg_cost_usd_per_kg
 # mass launched from Earth; 0.0 means there is no in-space market for it at
 # all and it can only be sold by flying it down.
 #
-# ⚠️  THESE ARE ENGINEERING JUDGEMENTS, NOT MEASUREMENTS.  Unlike the price
+# THESE ARE ENGINEERING JUDGEMENTS, NOT MEASUREMENTS.  Unlike the price
 # above, which is derived from the rocket equation and a real launch price, 
 # no market exists yet to calibrate these against.  They are the single
 # biggest soft assumption in the in-space case, so they live here as one
@@ -587,7 +587,7 @@ IN_SPACE_UTILITY_DEFAULT = 0.0
 # this table can be moved without the change becoming a way to manufacture
 # viability, which is the one thing the in-space case must not be tuned into.
 #
-# ⚠️  CONSIDERED AND REJECTED: giving the precious metals a small non-zero
+# CONSIDERED AND REJECTED: giving the precious metals a small non-zero
 # utility (0.05) at the two SURFACE destinations.  The physical argument is
 # sound; a crewed base runs fuel cells, electrolysers and Sabatier reactors
 # and wants Pt/Pd/Ru catalysts, where a propellant depot genuinely does not.
@@ -601,7 +601,7 @@ IN_SPACE_UTILITY_DEFAULT = 0.0
 # in space, fly the rest home) and this pipeline cannot express a blend.
 # Restoring it needs a quantity-aware route choice first, not a bigger table.
 #
-# ⚠️  Softer than the base table, which is already the softest thing in the
+# Softer than the base table, which is already the softest thing in the
 # pipeline.  These are judgements about economies that do not exist.
 IN_SPACE_UTILITY_BY_DESTINATION: Dict[str, Dict[str, float]] = {
     "leo":      {},                  # base profile, no local resources
@@ -620,7 +620,7 @@ IN_SPACE_UTILITY_BY_DESTINATION: Dict[str, Dict[str, float]] = {
     # crew, and no construction site.  So the volatiles keep most of their
     # value and the feedstock loses nearly all of it.
     #
-    # ⚠️  That makes GEO the destination most sensitive to this table, which
+    # That makes GEO the destination most sensitive to this table, which
     # is the softest thing in the pipeline.  The price above is derived from
     # the rocket equation; the numbers below are judgement about a market
     # that does not exist yet.  They are also still overrides that run
@@ -916,7 +916,7 @@ _UNLIMITED_MARKET_KG = 1.0e15
 # What a theoretical in-space base can actually ABSORB per year, all
 # commodities competing for the same import budget.
 #
-# ⚠️  JUDGEMENT, not measurement; no such market exists.  Anchored to
+# JUDGEMENT, not measurement; no such market exists.  Anchored to
 # publicly discussed architectures: a Starship-class refuelling campaign needs
 # on the order of 1,000 t of propellant in LEO per Mars departure; an
 # Artemis-scale NRHO depot is a fraction of that; surface bases are smaller
@@ -997,7 +997,7 @@ del _NO_CEILING
 # The four bulk classes partition the budget; the trace slice is additive and
 # negligible.
 #
-# ⚠️  JUDGEMENT, like everything else in this block.  Anchored on what a
+# JUDGEMENT, like everything else in this block.  Anchored on what a
 # propellant-and-construction outpost actually consumes by mass: propellant
 # dominates, structure is next, shielding is bulky but occasional, and
 # catalysts are measured in kilograms.
@@ -1626,7 +1626,7 @@ MINERAL_REFERENCE: List[dict] = [
     # an outer-belt body's ices and a C-type's carbonates, and the trace
     # metals of meteoritic Fe-Ni that were never in the alloy's yields.
     #
-    # ⚠️  REFERENCE PRICES ONLY, NO LIVE TICKER, AND THEY ARE APPROXIMATE.
+    # REFERENCE PRICES ONLY, NO LIVE TICKER, AND THEY ARE APPROXIMATE.
     # None of these trades on a futures market this module reads.  Each is
     # the order of the 2024 figure in USGS Mineral Commodity Summaries 2025
     # (published 2025-01-31) where USGS carries one, and a trade price where

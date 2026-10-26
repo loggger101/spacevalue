@@ -47,7 +47,7 @@ on the date each file is named for. `metals-2026-10-07` was not recorded at
 the time: it holds the closes recovered exactly from economicspace's Stage 2
 tables of that date, and its `note` column says so.
 
-⚠️  A price is a price **on a date**. Every row carries `catalog_date`, the
+A price is a price **on a date**. Every row carries `catalog_date`, the
 day its quotes were recorded, and `ref_price_date` for its reference figure;
 quote them with it.
 
