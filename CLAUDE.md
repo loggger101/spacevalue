@@ -3,7 +3,8 @@
 spacevalue prices asteroid material at eight destinations. `spacevalue/catalog.py`
 is the model (reference table, destinations, utility, demand, the build),
 `release.py` the published releases and their gate, `cli.py` the command line,
-and `spacevalue/quotes/` the recorded metal quotes. Rules:
+`cargo.py` economicspace's cargo valuation (what a hold is worth), and
+`spacevalue/quotes/` the recorded metal quotes. Rules:
 
 - **Changing any number a build produces moves the data contract**
   (`MineralValueConfig.pipeline_version`), with a CHANGELOG entry under "Data
@@ -37,6 +38,25 @@ and `spacevalue/quotes/` the recorded metal quotes. Rules:
   (Windows gives a redirected stdout cp1252). `tests/test_rules.py` holds both.
 - **No network by default.** `use_yfinance` is off; a release is built only
   from a recorded snapshot. `metals.dev` is never consulted in a recorded build.
+- **`cargo.py` is economicspace's numbers.** It moved verbatim from calc
+  1.32.0, and economicspace argues releases from bit-identical output, so a
+  change that moves one float (re-associating an expression counts) is a calc
+  release there. `tests/test_cargo_golden.py` replays recorded calls for the
+  last bit; re-record it only with such a release, never to pass. Its comments
+  are calc's (versions like v1.21.0 are calc stamps).
+- **Cargo rules not to "fix":** the payload mix is a fractional knapsack
+  (`optimal_payload_mix`, greedy by $/kg, provably optimal); a mineral is
+  worth the better of its price and its yields (`_phase_value`), in the phase
+  walk only; inseparable phases sell as one product (`_INSEPARABLE`), and a
+  phase is split only where a process separates it; the composition residual
+  is valued at a bulk-silicate floor; ISRU water is the water phase, not the
+  ice fraction. `caps=None` must stay bit-identical to the unbounded walk
+  (calc's sizing path calls it so); `caps` is keyed by market
+  (`phase_market_key`) and consumed as spent.
+- **`import spacevalue.cargo` imports nothing else from here**, and no
+  spacecost: a Stage 4 worker imports it at spawn. Every package name
+  resolves lazily (`_LAZY` in `__init__.py`, held to `__all__`); never add an
+  eager import there (`tests/test_rules.py`).
 - **economicspace reads names from here** (`tests/test_consumer_contract.py`).
   Removing one is a breaking change: bump the minor version, note it, and edit
   economicspace's `modules/mineral_value.py` in the same breath.

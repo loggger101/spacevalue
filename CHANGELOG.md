@@ -29,10 +29,30 @@ code.
 
 ## Package releases
 
-### Unreleased
+### 0.2.0 - 2026-10-26
 
-No code or number changed.
+economicspace's cargo valuation moves here, and no number moves: no price,
+and none of economicspace's results. The data contract stays 1.17.0, since a
+price build is untouched.
 
+- `spacevalue.cargo`: what a hold of asteroid ore is worth and how much a
+  market takes. The mineral and phase walk, the inseparable phases, the flown
+  refinery, the composition memo, the market ceilings and the payload knapsack,
+  moved from economicspace's Stage 4 (`modules/calc.py`, calc 1.32.0)
+  VERBATIM: the module's body is byte-identical to calc's span, comments
+  included, and every definition's AST is unchanged. The market-model names
+  and their validator stay in calc, which owns the config they validate.
+- `import spacevalue` no longer imports the catalog or spacecost: every public
+  name resolves on first use (PEP 562). A Stage 4 worker imports
+  `spacevalue.cargo` at spawn, and it imports nothing else from here.
+- `tests/test_cargo_golden.py` replays a seeded sample of real calls across
+  that seam, recorded in calc 1.32.0 over thirteen cells that reach every
+  market model and every phase and refinery path, and demands the same bits.
+  A failure there is a change to economicspace's results. Its codec ships as
+  `spacevalue._cargo_codec`, so economicspace's recorder
+  (`campaign/cargo_golden.py`) and this test share one copy.
+- The consumer contract names the twenty-five `spacevalue.cargo` names calc
+  imports.
 - README: a "What a row holds" section naming the columns most readers want,
   held to the fixture's header by `tests/test_docs.py`, and how to read a
   release's CSV with pandas without installing anything.
