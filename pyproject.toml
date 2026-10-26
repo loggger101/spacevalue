@@ -1,0 +1,61 @@
+[build-system]
+# 77 is the first setuptools that reads PEP 639's `license = "MIT"` string.
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spacevalue"
+dynamic = ["version"]
+description = "What a kilogram of asteroid material is worth, and where it is sold: mineral and element prices for Earth's surface and seven destinations in space, from recorded market quotes, published as reproducible price releases."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Logan M Edwards" }]
+keywords = [
+    "asteroid-mining", "space-resources", "commodity-prices", "isru",
+    "mineral-economics", "cislunar", "reference-data", "reproducibility",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Office/Business :: Financial",
+]
+
+# spacecost supplies the delivery chains, the launch price and the quote
+# snapshot code.  It is not on PyPI, so it is pinned to a TAGGED git ref.
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "spacecost @ git+https://github.com/loggger101/spacecost@v0.14.0",
+]
+
+[project.optional-dependencies]
+# Live quotes only: yfinance for the COMEX closes, requests for metals.dev.
+# A build from a recorded snapshot needs neither.
+live = ["yfinance>=0.2", "requests>=2.0"]
+test = ["pytest>=7.0"]
+
+[project.urls]
+Repository = "https://github.com/loggger101/spacevalue"
+Changelog = "https://github.com/loggger101/spacevalue/blob/main/CHANGELOG.md"
+Releases = "https://github.com/loggger101/spacevalue/releases"
+"Upstream project" = "https://github.com/loggger101/economicspace"
+
+[project.scripts]
+spacevalue = "spacevalue.cli:main"
+
+[tool.setuptools]
+packages = ["spacevalue"]
+
+# The recorded metal quotes ship in the wheel: every release is built from one.
+[tool.setuptools.package-data]
+spacevalue = ["quotes/*.csv", "quotes/SHA256SUMS"]
+
+[tool.setuptools.dynamic]
+version = { attr = "spacevalue.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

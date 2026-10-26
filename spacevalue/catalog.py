@@ -86,7 +86,7 @@ class MineralValueConfig:
     # Set to your real API key to enable.  Leaving it as "DEMO" causes the
     # fetcher to silently skip; the demo endpoint is heavily rate-limited.
     metals_api_key: str = "DEMO"
-    metals_api_url: str = "https://api.metals.dev/v1/latest"
+    metals_api_url: str = "https://api.metals.dev/v1/latest"   # its endpoint
 
     # ─── DELIVERY DESTINATION  (drives EVERY price; read this) ──────────────
     # Where the mined material is actually SOLD.  This is the single most
@@ -159,7 +159,7 @@ class MineralValueConfig:
     # ─── OUTPUT ──────────────────────────────────────────────────────────────
     # "" means $SPACEVALUE_OUTPUT_DIR, else ./spacevalue_data, at build time.
     output_dir:       str = ""
-    catalog_filename: str = "mineral_value_catalog.csv"
+    catalog_filename: str = "mineral_value_catalog.csv"   # the table written
 
     # ─── PRICE UNITS ─────────────────────────────────────────────────────────
     # Every price in this pipeline, live OR reference, is normalised to

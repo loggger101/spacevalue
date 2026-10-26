@@ -1,0 +1,123 @@
+name: publish prices
+
+# Builds the eight destination tables from one committed quote snapshot, gates
+# them, and publishes them as a release tagged `prices-<recorded date>`.
+# Consumers pin one of those tags instead of building; economicspace installs
+# one as its Stage 2.
+#
+# Run it by hand: Actions > "publish prices" > Run workflow, naming a snapshot
+# that is already committed on main (`spacevalue quotes list`).
+#
+# NOTHING IS PUBLISHED UNLESS THE GATE PASSES (`spacevalue check-release`),
+# and a release is never overwritten: if the tag exists the run stops.  Pass a
+# tag such as prices-2026-10-26b to publish a second release of one day.
+#
+# Built on Windows because that is where the committed fixtures were written:
+# the in-space prices go through the C library's exp(), and the release
+# should be the bytes the tests hold.
+
+on:
+  workflow_dispatch:
+    inputs:
+      snapshot:
+        description: "Quote snapshot, e.g. metals-2026-10-26"
+        required: true
+      tag:
+        description: "Release tag. Blank = prices-<recorded date>."
+        required: false
+        default: ""
+      dry_run:
+        description: "Build and gate, but do not publish."
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-prices
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONUNBUFFERED: "1"
+      # Inputs reach the shell through the environment, never by ${{ }}
+      # substitution into a script, so an input cannot inject a command.
+      SNAPSHOT: ${{ inputs.snapshot }}
+      TAG_INPUT: ${{ inputs.tag }}
+      DRY_RUN: ${{ inputs.dry_run }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install and test
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[test]"
+          python -m pytest -q
+
+      - name: Build and gate the release
+        shell: bash
+        run: |
+          if [ -n "$TAG_INPUT" ]; then
+            spacevalue release --quotes "$SNAPSHOT" -o dist --tag "$TAG_INPUT"
+          else
+            spacevalue release --quotes "$SNAPSHOT" -o dist
+          fi
+          python -c "import json; print(json.load(open('dist/manifest.json'))['release_tag'])" > tag.txt
+          echo "TAG=$(cat tag.txt)" >> "$GITHUB_ENV"
+
+      # A release whose tables are committed as test fixtures must be those
+      # bytes.  Today that is the seed, prices-2026-10-07.
+      - name: Compare with committed fixtures, where there are any
+        shell: bash
+        run: |
+          if [ -d "tests/data/$TAG" ]; then
+            for f in dist/*.csv; do cmp "$f" "tests/data/$TAG/$(basename "$f")"; done
+            echo "all eight tables equal tests/data/$TAG"
+          else
+            echo "no fixtures for $TAG; the gate is the check"
+          fi
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo "## $TAG"
+            echo '```'
+            python -c "import json; m = json.load(open('dist/manifest.json')); print('data contract', m['pipeline_version'], '| package', m['package_version'], '| spacecost', m['spacecost_version']); print('quotes', m['quote_snapshot'], 'recorded', m['catalog_date']); [print('  %-5s %s per %s, closed %s' % (q['ticker'], q['close'], q['unit'], q['close_date'])) for q in m['quotes']]; [print('  %-42s %s' % (f, e['sha256'])) for f, e in sorted(m['files'].items())]"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish
+        if: ${{ inputs.dry_run == false }}
+        shell: bash
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "release $TAG exists; a release is never overwritten" >&2
+            exit 1
+          fi
+          python - <<'PY' > notes.md
+          import json
+          m = json.load(open("dist/manifest.json"))
+          print("Mineral and element prices at all eight destinations, built from the "
+                "quote snapshot `%s` (recorded %s) by spacevalue %s, data contract %s."
+                % (m["quote_snapshot"], m["catalog_date"], m["package_version"],
+                   m["pipeline_version"]))
+          print()
+          print("| ticker | close | per | closed |")
+          print("|---|---:|---|---|")
+          for q in m["quotes"]:
+              print("| %s | %s | %s | %s |" % (q["ticker"], q["close"], q["unit"], q["close_date"]))
+          print()
+          print("Every other price is a reference row dated in its `ref_price_date`. "
+                "`manifest.json` holds each file's sha256.")
+          PY
+          gh release create "$TAG" dist/*.csv dist/manifest.json \
+            --title "$TAG" --notes-file notes.md --target "$GITHUB_SHA"
