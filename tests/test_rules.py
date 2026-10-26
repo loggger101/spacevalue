@@ -2,14 +2,16 @@
 """House rules: a quiet import, ASCII output, one version written once.
 
 Each of these has failed once somewhere in this family of repositories, which
-is why they are tests and not advice.
+is why they are tests and not advice. The generic rules are samebytes'
+(`samebytes.source` and `samebytes.docs`), the one copy the family shares;
+the ones only this package needs are written out here.
 """
 
-import ast
 import os
-import re
 import subprocess
 import sys
+
+from samebytes import docs, source
 
 import spacevalue
 
@@ -22,14 +24,12 @@ def test_import_is_silent():
     """A library that prints when imported for one constant is a nuisance.
 
     Every module, because `import spacevalue` alone no longer imports any of
-    them (the names resolve lazily).
+    them (the names resolve lazily). Run in a fresh interpreter in an empty
+    directory, which must stay empty: importing creates nothing.
     """
     probe = ("import spacevalue, spacevalue.cargo, spacevalue.catalog, "
              "spacevalue.release; spacevalue.DATA_VERSION")
-    out = subprocess.run([sys.executable, "-c", probe],
-                         capture_output=True, text=True, cwd=ROOT)
-    assert out.returncode == 0, out.stderr
-    assert out.stdout == "" and out.stderr == ""
+    assert source.quiet_import(ROOT, probe) == ([], 1)
 
 
 def test_cargo_imports_neither_the_catalog_nor_spacecost():
@@ -54,13 +54,6 @@ def test_lazy_names_are_the_public_names():
     assert sorted(lazy ^ set(spacevalue.__all__)) == []
 
 
-def test_import_creates_nothing(tmp_path):
-    subprocess.run([sys.executable, "-c",
-                    "import sys; sys.path.insert(0, %r); import spacevalue" % ROOT],
-                   cwd=str(tmp_path), check=True)
-    assert os.listdir(str(tmp_path)) == []
-
-
 def test_printed_strings_are_ascii():
     """Windows gives a redirected stdout cp1252: one non-ASCII byte kills it.
 
@@ -68,35 +61,18 @@ def test_printed_strings_are_ascii():
     docstrings and the `notes` data keep their characters; they are not
     printed by the progress output.
     """
-    bad = []
-    for path in SOURCES:
-        tree = ast.parse(open(path, encoding="utf-8").read())
-        for node in ast.walk(tree):
-            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-                    and node.func.id in ("say", "print")):
-                for sub in ast.walk(node):
-                    if isinstance(sub, ast.Constant) and isinstance(sub.value, str):
-                        if any(ord(c) > 127 for c in sub.value):
-                            bad.append((os.path.basename(path), sub.lineno))
-    assert not bad
+    bad, n = source.printed_non_ascii(ROOT, SOURCES, callers=("say", "print"))
+    assert bad == [] and n > 0
 
 
 def test_no_print_outside_the_cli():
-    for path in SOURCES:
-        if os.path.basename(path) == "cli.py":
-            continue
-        tree = ast.parse(open(path, encoding="utf-8").read())
-        calls = [n.lineno for n in ast.walk(tree)
-                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
-                 and n.func.id == "print"]
-        assert not calls, (os.path.basename(path), calls)
+    """Library output goes through `say`; only the command line prints."""
+    lib = [p for p in SOURCES if os.path.basename(p) != "cli.py"]
+    assert source.calls(ROOT, lib, ["print"])[0] == []
 
 
 def test_the_package_version_is_written_once():
-    text = open(os.path.join(ROOT, "pyproject.toml"), encoding="utf-8").read()
-    assert 'dynamic = ["version"]' in text
-    assert 'version = { attr = "spacevalue.__version__" }' in text
-    assert re.search(r'^version\s*=\s*"', text, re.M) is None
+    assert source.version_written_once(ROOT, "spacevalue") == ([], 1)
 
 
 def test_the_changelog_has_this_release():
@@ -111,9 +87,6 @@ def test_the_readme_names_the_current_contract():
 
 
 def test_internal_anchors_resolve():
-    """Every `](#anchor)` in the README names a heading that exists."""
-    text = open(os.path.join(ROOT, "README.md"), encoding="utf-8").read()
-    heads = {re.sub(r"[^\w\- ]", "", h.strip().lower()).replace(" ", "-")
-             for h in re.findall(r"^#+ (.+)$", text, re.M)}
-    links = set(re.findall(r"\]\(#([^)]+)\)", text))
-    assert sorted(links - heads) == []
+    """Every `](#anchor)` and relative link in the README names something that exists."""
+    bad, n = docs.links(ROOT, ["README.md"])
+    assert bad == [] and n > 0
