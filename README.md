@@ -32,7 +32,7 @@ spacevalue release --quotes metals-2026-10-07 -o dist/   # all eight + manifest
 spacevalue quotes list
 ```
 
-Or skip the code and download a table: every
+Or skip the code and download a table. Every
 [release](https://github.com/loggger101/spacevalue/releases) tagged
 `prices-YYYY-MM-DD` carries all eight as CSVs.
 
@@ -66,8 +66,8 @@ cheapest LEO price a buyer can book, and adds the stages the chain throws away.
 | `mars_orbit` | 9,154 | 4,500 m/s to a 1-sol staging orbit |
 | `mars_surface` | 186,306 | 4,400 m/s plus aeroentry |
 
-The two surface figures are lower bounds: industrial-scale marginal transport
-with no development cost and no cadence limit. Real lunar delivery today costs
+The two surface figures are lower bounds. They price industrial-scale
+transport with no development cost and no cadence limit. Real lunar delivery today costs
 far more. `tests/test_docs.py` holds this table to the code.
 
 ## How a price is made
@@ -111,8 +111,8 @@ pound), written so it reads back as the same float. It is never edited:
 price is a new file. The table's `catalog_date` is the day the quotes were
 recorded, not the day you built it.
 
-`metals-2026-10-07` is the exception that proves the format. Nobody recorded
-those closes at the time; economicspace's tables of that date kept only the
+`metals-2026-10-07` was made differently. Nobody recorded those closes at the
+time; economicspace's tables of that date kept only the
 converted $/kg. Each of the five converts back to exactly one close that
 reproduces it bit for bit, so that is what the snapshot holds, and its `note`
 column says where it came from.
@@ -161,12 +161,10 @@ and on 3.11 they come out one bit different.
   1.16.0 and [CHANGELOG.md](CHANGELOG.md) from there.
 - **The package**, `spacevalue.__version__`. It moves for anything else.
 
-The rule is one-directional: a changed number means a new contract, and a new
+The rule runs one way. A changed number means a new contract, and a new
 contract does not mean a number changed.
 
 ## The judgement in it
-
-Some of this is measurement and some is not, and the difference matters.
 
 The launch cost avoided is derived from the rocket equation and a real launch
 price. The **in-space utility factors** are engineering judgement: no market
@@ -205,8 +203,8 @@ git history came with it. The split changed no number: built from
 (data contract 1.16.0) fed the same closes, and the seven destinations it had
 frozen at 1.15.0 match those files byte for byte apart from the stamp.
 
-What changed on the way out: it no longer installs packages, prints, or makes
-a directory when imported; live quotes are off by default; output goes to
+On the way out it stopped installing packages, printing, and making a
+directory when imported; live quotes are off by default; output goes to
 `./spacevalue_data` or `$SPACEVALUE_OUTPUT_DIR`; and a build can name a
 recorded snapshot.
 
