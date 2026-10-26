@@ -48,7 +48,11 @@ price build is untouched.
 - `tests/test_cargo_golden.py` replays a seeded sample of real calls across
   that seam, recorded in calc 1.32.0 over thirteen cells that reach every
   market model and every phase and refinery path, and demands the same bits.
-  A failure there is a change to economicspace's results. Its codec ships as
+  A failure there is a change to economicspace's results. On the recording
+  host (Windows) every call is held to the bit; macOS's C library rounds `pow`
+  differently, and two elasticity-multiplier calls come out one ulp away, so
+  off that host the one function that calls `pow` is held to one ulp and
+  everything else still to the bit (Linux matches Windows exactly). Its codec ships as
   `spacevalue._cargo_codec`, so economicspace's recorder
   (`campaign/cargo_golden.py`) and this test share one copy.
 - The consumer contract names the twenty-five `spacevalue.cargo` names calc
