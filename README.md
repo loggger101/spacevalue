@@ -13,7 +13,7 @@ orbit, because every kilogram already up there is a kilogram nobody has to
 launch.
 
 ```bash
-pip install git+https://github.com/loggger101/spacevalue@v0.1.0
+pip install git+https://github.com/loggger101/spacevalue@v0.2.0
 ```
 
 ```python
@@ -50,6 +50,7 @@ table = pd.read_csv(url)
 - [The eight destinations](#the-eight-destinations)
 - [How a price is made](#how-a-price-is-made)
 - [What a row holds](#what-a-row-holds)
+- [What a hold is worth](#what-a-hold-is-worth)
 - [Prices come from recorded quotes](#prices-come-from-recorded-quotes)
 - [Price releases](#price-releases)
 - [Two version numbers](#two-version-numbers)
@@ -123,6 +124,22 @@ at every destination. The ones you will read most:
 
 `pipeline_version` and `delivery_destination` are stamped on every row, so a
 table that has lost its filename still says what it is.
+
+## What a hold is worth
+
+The tables price a kilogram of one mineral. `spacevalue.cargo` prices a
+mission's hold: it walks an asteroid's composition into phases (selling the
+ones no process separates, kamacite and taenite, as one product), values each
+phase at the better of its own price and what it yields, charges the refinery
+flown to work it, and fills the hold greedily by dollars per kilogram, a
+fractional knapsack, so the answer is optimal. Where a market can absorb only
+so much, the ceiling clips each commodity, and what is left over sells at a
+discount or not at all.
+
+This was economicspace's Stage 4 cargo valuation until 0.2.0, and it moved
+without changing a bit: its results are economicspace's results, and
+`tests/test_cargo_golden.py` replays real calls recorded there to keep it that
+way.
 
 ## Prices come from recorded quotes
 
@@ -223,10 +240,13 @@ spacevalue/
     catalog.py      the reference table, the destinations, utility, demand,
                     and the build
     release.py      a release: every destination, the manifest, the gate
+    cargo.py        what a hold is worth: phases, refinery, market ceilings,
+                    the payload knapsack (economicspace's Stage 4 reads it)
     cli.py          `spacevalue`
     quotes/         the metal snapshots and SHA256SUMS, shipped in the wheel
 tests/
-    data/           the seed release's eight tables, the history they hold
+    data/           the seed release's eight tables, the history they hold,
+                    and the cargo calls recorded in economicspace
 ```
 
 ## Where it came from

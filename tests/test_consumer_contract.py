@@ -20,7 +20,7 @@ on every run is no check.  Refresh it by grepping economicspace's
 """
 
 import spacevalue
-from spacevalue import catalog
+from spacevalue import cargo, catalog
 
 # Top-level names, each also in `__all__` so the wheel step covers them.
 CONSUMER_SURFACE = (
@@ -36,6 +36,22 @@ CONSUMER_SURFACE = (
 CATALOG_SURFACE = (
     "_COMMODITY_CLASS", "_UNLIMITED_MARKET_KG",
     "_DELIVERY_LEGS", "_LEO_USD_PER_KG", "delivered_cost_usd_per_kg",
+)
+
+# What economicspace's Stage 4 (`modules/calc.py`) imports from
+# `spacevalue.cargo`: the twenty its own code calls, then five it imports only
+# so `master.<name>` reaches them for its worked calculation and verify.py.
+# Refresh it from calc's `from spacevalue.cargo import (...)` block.
+CARGO_SURFACE = (
+    "market_table", "_PHASES_COL", "_DETAILED_COL", "_parse_phases",
+    "_row_phases", "_row_water_fraction", "_REFINING_COLS", "_NET_PRICE_COL",
+    "asteroid_refinery", "refinery_plant_kg", "_hold_refining",
+    "asteroid_bulk_value_usd_per_kg", "phase_market_key", "phase_market_kg",
+    "asteroid_phase_table", "saturation_price_multiplier",
+    "_delivery_window_yr", "_capped_sale_value", "optimal_payload_mix",
+    "asteroid_best_phase_usd_per_kg",
+    "RARE_METAL_ELEMENTS", "FRACTION_TO_MINERAL", "_INSEPARABLE",
+    "_RESIDUAL_PHASE", "_PHASE_MARKET_ALIAS",
 )
 
 # What a published release's manifest carries that economicspace reads.
@@ -60,6 +76,19 @@ def test_every_catalog_name_still_exists():
     missing = [n for n in CATALOG_SURFACE if not hasattr(catalog, n)]
     assert not missing, ("economicspace reaches these and spacevalue.catalog "
                          "no longer has them: " + ", ".join(missing))
+
+
+def test_the_recorder_codec_still_exists():
+    """economicspace's `campaign/cargo_golden.py` records with these."""
+    from spacevalue import _cargo_codec
+    assert hasattr(_cargo_codec, "Encoder") and hasattr(_cargo_codec, "Decoder")
+
+
+def test_every_cargo_name_still_exists():
+    missing = [n for n in CARGO_SURFACE if not hasattr(cargo, n)]
+    assert not missing, ("economicspace's Stage 4 imports these and "
+                         "spacevalue.cargo no longer has them: "
+                         + ", ".join(missing))
 
 
 def test_a_manifest_carries_what_the_installer_reads(tmp_path):

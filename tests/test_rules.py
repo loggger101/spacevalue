@@ -19,11 +19,39 @@ SOURCES = sorted(os.path.join(PKG, f) for f in os.listdir(PKG) if f.endswith(".p
 
 
 def test_import_is_silent():
-    """A library that prints when imported for one constant is a nuisance."""
-    out = subprocess.run([sys.executable, "-c", "import spacevalue"],
+    """A library that prints when imported for one constant is a nuisance.
+
+    Every module, because `import spacevalue` alone no longer imports any of
+    them (the names resolve lazily).
+    """
+    probe = ("import spacevalue, spacevalue.cargo, spacevalue.catalog, "
+             "spacevalue.release; spacevalue.DATA_VERSION")
+    out = subprocess.run([sys.executable, "-c", probe],
                          capture_output=True, text=True, cwd=ROOT)
     assert out.returncode == 0, out.stderr
     assert out.stdout == "" and out.stderr == ""
+
+
+def test_cargo_imports_neither_the_catalog_nor_spacecost():
+    """A Stage 4 worker imports `spacevalue.cargo` at spawn, many times a run.
+
+    The package's names resolve lazily for exactly this, so a lost laziness
+    (one eager `from .catalog import ...` in `__init__`) shows up here and not
+    as slower workers nobody times.
+    """
+    probe = ("import sys; sys.path.insert(0, %r); import spacevalue.cargo; "
+             "print(sorted(m for m in sys.modules if m == 'spacecost' "
+             "or m.startswith(('spacecost.', 'spacevalue.'))))" % ROOT)
+    out = subprocess.run([sys.executable, "-c", probe], capture_output=True,
+                         text=True, cwd=ROOT)
+    assert out.returncode == 0, out.stderr
+    assert out.stdout.strip() == "['spacevalue.cargo']"
+
+
+def test_lazy_names_are_the_public_names():
+    """`__all__` and the lazy table name the same things, so neither rots."""
+    lazy = set(spacevalue._LAZY) | {"DATA_VERSION", "__version__"}
+    assert sorted(lazy ^ set(spacevalue.__all__)) == []
 
 
 def test_import_creates_nothing(tmp_path):
