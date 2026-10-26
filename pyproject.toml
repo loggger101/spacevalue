@@ -48,7 +48,9 @@ dependencies = [
 # Live quotes only: yfinance for the COMEX closes, requests for metals.dev.
 # A build from a recorded snapshot needs neither.
 live = ["yfinance>=0.2", "requests>=2.0"]
-test = ["pytest>=7.0"]
+# samebytes is the house-rule checks tests/test_rules.py calls (docs and
+# source); test-only, so the package itself still depends on nothing new.
+test = ["pytest>=7.0", "samebytes @ git+https://github.com/loggger101/samebytes@v0.3.0"]
 
 [project.urls]
 Repository = "https://github.com/loggger101/spacevalue"
