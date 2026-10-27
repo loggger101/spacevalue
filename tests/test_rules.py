@@ -7,6 +7,7 @@ is why they are tests and not advice. The generic rules are samebytes'
 the ones only this package needs are written out here.
 """
 
+import dataclasses
 import os
 import subprocess
 import sys
@@ -90,3 +91,32 @@ def test_internal_anchors_resolve():
     """Every `](#anchor)` and relative link in the README names something that exists."""
     bad, n = docs.links(ROOT, ["README.md"])
     assert bad == [] and n > 0
+
+
+def test_git_pins_agree():
+    """Every `github.com/loggger101/<repo>@<ref>` names one ref per repository.
+
+    samebytes is pinned in pyproject's test extra and in CI's hooks job, and
+    this package's own tag in two README install lines.  Both pairs had
+    drifted when this test was written (the hooks job on v0.2.0 against
+    v0.3.0; the live extra's install line on v0.1.0 against v0.2.0).
+    CHANGELOG is left out: an old pin there is history.
+    """
+    files = ["pyproject.toml", ".github/workflows/tests.yml", "README.md", "CLAUDE.md",
+             "CITATIONS.md"]
+    bad, n = docs.pins(ROOT, files, "loggger101")
+    assert bad == [] and n >= 5, "; ".join(bad)
+
+
+def test_every_config_field_has_help():
+    """Every `MineralValueConfig` field carries a help comment.
+
+    Read by samebytes' `source.field_docs`, the rule economicspace's dashboard
+    shows a config's comments by: the block directly above a field, to the
+    first blank line, banner or bare rule, plus a trailing comment.
+    """
+    from spacevalue.catalog import MineralValueConfig
+    fields = [f.name for f in dataclasses.fields(MineralValueConfig)]
+    bad, n = source.missing_help(ROOT, "spacevalue/catalog.py", "MineralValueConfig",
+                                 fields=fields)
+    assert bad == [] and n == len(fields), "; ".join(bad)
