@@ -170,7 +170,7 @@ column says where it came from.
 
 Live prices are still there, opt-in, for anyone who wants today's and accepts
 that it cannot be repeated: `use_yfinance=True` or `spacevalue build --live`,
-with the extra `pip install "spacevalue[live] @ git+https://github.com/loggger101/spacevalue@v0.1.0"`.
+with the extra `pip install "spacevalue[live] @ git+https://github.com/loggger101/spacevalue@v0.2.0"`.
 Asking for live and recorded quotes at once is refused.
 
 The snapshot code is [spacecost's](https://github.com/loggger101/spacecost)
