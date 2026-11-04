@@ -150,6 +150,9 @@ def _mineral_implied_value(
     function (chondritic / mean-iron-meteorite baseline).  For an M-type
     asteroid with comp_pgm_enrichment = 2.0, the PGM portion doubles.
 
+    Like Module 2's, this values refined metal at refined prices, with no
+    payable fraction, treatment charge or refining charge.
+
     Returns the direct row price as a fallback if yields are empty.
     """
     entry = _mineral_table(mineral_df).get(mineral_name)
@@ -489,7 +492,7 @@ def asteroid_refinery(
     wh: Dict[str, float] = {}
     raw = 0.0
     for name, frac, _price in asteroid_phase_table(asteroid_row, mineral_df):
-        key = "silicates" if name == _RESIDUAL_PHASE else name
+        phase = "silicates" if name == _RESIDUAL_PHASE else name
         if name in merged:
             terms = {n: _phase_terms(mineral_df, n, pgm, True) for n, _f in merged[name]}
             blended = _blend(merged[name], lambda n: (
@@ -498,7 +501,7 @@ def asteroid_refinery(
             wh[name] = per_kg
             raw += frac * per_kg
             continue
-        per_kg = _phase_terms(mineral_df, key, pgm,
+        per_kg = _phase_terms(mineral_df, phase, pgm,
                               phased and name != _RESIDUAL_PHASE)[1]
         wh[name] = per_kg
         raw += frac * per_kg

@@ -36,7 +36,7 @@ import json
 import os
 import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -178,7 +178,7 @@ class MineralValueConfig:
     # What each contract changed is CHANGELOG.md, not this comment: the
     # dashboard economicspace builds scrapes a field's comment block as its
     # help, and a changelog here was once 267 lines of it.
-    pipeline_version: str = "1.17.0"
+    pipeline_version: str = "1.18.0"
 
     # ─── DISPLAY ─────────────────────────────────────────────────────────────
     preview_rows:      int = 20   # rows per table in the CLI preview
@@ -339,7 +339,7 @@ _EARTH_SURFACE_WATER_USD_PER_KG = 0.001
 # citations, rather than digits buried mid-sentence, so a reader can see at a
 # glance which numbers this table asserts and which it derives.  They are
 # comparisons and context, not terms in the price.
-_GEO_COPLANAR_GTO_BURN_M_S = 1_478.0   # the same apogee burn with no plane change
+_GEO_COPLANAR_GTO_BURN_M_S = 1_477.0   # the same apogee burn with no plane change
 _PARKING_INCLINATION_DEG   = 28.5      # Cape Canaveral, the latitude GTO starts at
 _MARS_200KM_CAPTURE_M_S    = 2_100.0   # circularising instead of binding an ellipse
 _MARS_1SOL_ORBIT_KM        = (250, 33_793)   # NASA DRA 5.0 staging orbit, altitudes
@@ -880,18 +880,18 @@ def in_space_utility(name: str, destination: str) -> float:
 # deliberately huge number so saturation never binds on them.
 ANNUAL_WORLD_PRODUCTION_KG: Dict[str, float] = {
     # Precious: small markets, and the ones asteroid mining always targets
-    "osmium":         1.0e3,      # ~1 t/yr, a by-product of a by-product
+    "osmium":         5.0e2,      # ~500-550 kg/yr over 2024-25 (IPA/SFA factsheet, 2026), a by-product of a by-product
     "iridium":        7.5e3,      # ~7.5 t
     "rhodium":        2.3e4,      # ~23 t
     "ruthenium":      3.0e4,      # ~30 t
-    "platinum":       1.8e5,      # ~180 t
-    "palladium":      2.1e5,      # ~210 t
-    "gold":           3.0e6,      # ~3,000 t
+    "platinum":       1.7e5,      # ~170 t mined, 2025e (USGS MCS 2026)
+    "palladium":      1.9e5,      # ~190 t mined, 2025e (USGS MCS 2026)
+    "gold":           3.3e6,      # ~3,300 t mined, 2025e (USGS MCS 2026)
     "silver":         2.6e7,      # ~26,000 t
     # Base metals; large markets, saturation effectively never binds
     "cobalt":         3.1e8,      # ~310,000 t mined, 2025 (USGS MCS 2026)
-    "copper":         2.2e10,
-    "nickel":         3.6e9,
+    "copper":         2.3e10,     # ~23 Mt mined, 2024 and 2025e; refinery 29 Mt, 2025e (USGS MCS 2026)
+    "nickel":         3.9e9,      # ~3.9 Mt mined, 2025e (USGS MCS 2026)
     "iron":           1.3e12,     # world pig-iron production, 1,300 Mt 2025e (USGS MCS 2026)
     # v1.11.0, USGS MCS 2025 world production for 2024, rounded
     "germanium":      1.4e5,      # ~140 t refinery
@@ -899,8 +899,8 @@ ANNUAL_WORLD_PRODUCTION_KG: Dict[str, float] = {
     "gallium":        7.6e5,      # ~760 t primary
     "tungsten":       8.1e7,      # ~81,000 t
     "molybdenum":     2.6e8,      # ~260,000 t
-    "titanium":       3.0e8,      # ~300,000 t sponge
-    "chromium":       4.4e10,     # ~44 Mt chromite ore, the market it trades in
+    "titanium":       3.2e8,      # ~320,000 t sponge, excluding the U.S.
+    "chromium":       4.7e10,     # ~47 Mt shipping-grade chromite ore, the market it trades in
     "phosphorus":     1.0e9,      # ~1 Mt elemental P4 (phosphate rock is 240 Mt)
     "sulfur":         8.3e10,     # ~83 Mt
     "ammonia":        1.5e11,     # ~150 Mt N as ammonia
@@ -1439,7 +1439,9 @@ MINERAL_REFERENCE: List[dict] = [
                                  "Asteroid mining produces refined iron from "
                                  "nickel-iron alloy, NOT iron ore — so the "
                                  "relevant sale price is steel scrap / refined "
-                                 "metal, not the $0.10/kg iron-ore benchmark.",
+                                 "metal, not iron ore, whose average unit value "
+                                 "at U.S. mines was $89/t in 2025e ($0.089/kg; "
+                                 "$141.78/t in 2021; USGS MCS 2026).",
     },
     {   # ── Nickel ───────────────────────────────────────────────────────
         "name":                  "nickel",
@@ -1464,7 +1466,10 @@ MINERAL_REFERENCE: List[dict] = [
         "metals_dev_key":        "cobalt",
         "ref_price_usd_per_kg":  33.00,          # LME cobalt ~$33 000/tonne
         "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "LME cobalt cash; trace constituent of FeNi alloys.",
+        "notes":                 "LME cobalt cash, $15/lb average for 2025e = "
+                                 "$33.07/kg (USGS MCS 2026; U.S. spot cathode was "
+                                 "$21/lb = $46.30/kg); trace constituent of FeNi "
+                                 "alloys.",
     },
     {   # ── Copper ───────────────────────────────────────────────────────
         "name":                  "copper",
@@ -1488,11 +1493,12 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       "GC=F",         # COMEX gold, USD / troy oz
         "yfinance_unit":         "troy_oz",
         "metals_dev_key":        "gold",
-        "ref_price_usd_per_kg":  150_000.0,      # ~$4,700/oz (May 2026)
+        "ref_price_usd_per_kg":  145_506.0,      # $4,525.75/oz (LBMA, 2026-05-29)
         "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "COMEX gold front-month.  Reference $150k/kg = "
-                                 "~$4,700/oz; gold ran from $3,335 (May 2025) to "
-                                 "$4,732 (May 2026) per Reuters analyst consensus.",
+        "notes":                 "COMEX gold front-month.  Reference $145,506/kg "
+                                 "= $4,525.75/oz, the LBMA gold price on "
+                                 "2026-05-29; the World Bank Pink Sheet average "
+                                 "for May 2026, $4,587/oz, agrees within 1.4%.",
     },
     {   # ── Silver ───────────────────────────────────────────────────────
         "name":                  "silver",
@@ -1529,10 +1535,11 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       "PA=F",         # NYMEX palladium, USD / troy oz
         "yfinance_unit":         "troy_oz",
         "metals_dev_key":        "palladium",
-        "ref_price_usd_per_kg":  48_000.0,       # ~$1,495/oz (May 8 2026 LBMA)
+        "ref_price_usd_per_kg":  43_853.6,       # $1,364/oz (LBMA, 2026-05-29)
         "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "NYMEX palladium front-month.  Reference $48k/kg = "
-                                 "$1,495/oz spot (May 2026, LBMA via lppm.com).",
+        "notes":                 "NYMEX palladium front-month.  Reference "
+                                 "$43,853.6/kg = $1,364/oz, the LBMA palladium "
+                                 "price on 2026-05-29.",
     },
     {   # ── Rhodium ──────────────────────────────────────────────────────
         "name":                  "rhodium",
@@ -1589,7 +1596,10 @@ MINERAL_REFERENCE: List[dict] = [
         "metals_dev_key":        None,           # not on metals.dev
         "ref_price_usd_per_kg":  13_000.0,
         "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "Specialty quote; very illiquid.",
+        "notes":                 "Specialty quote; very illiquid.  No exchange-"
+                                 "traded benchmark: $300-400/oz since the 2000s "
+                                 "($9,645-12,860/kg; IPA/SFA factsheet, 2026), and "
+                                 "$13,000/kg is $404/oz, just above that band.",
     },
     {   # ── Water (the most valuable in-space resource) ───────────────────
         "name":                  "water",
@@ -1967,7 +1977,7 @@ MINERAL_REFERENCE: List[dict] = [
     {   # ── Pyroxene ─────────────────────────────────────────────────────
         "name":                  "pyroxene",
         "kind":                  "mineral",
-        "formula":               "(Mg,Fe,Ca)Si2O6",
+        "formula":               "(Mg,Fe,Ca)2Si2O6",
         "density_gcm3":          3.40,
         "yields": {"iron": 0.07},
         "ref_price_usd_per_kg":  0.05,
@@ -2002,7 +2012,9 @@ MINERAL_REFERENCE: List[dict] = [
         "yields": {},
         "ref_price_usd_per_kg":  0.10,
         "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "Feldspar group; basaltic-crust marker.",
+        "notes":                 "Feldspar group; basaltic-crust marker.  Priced "
+                                 "as feldspar, whose marketable production "
+                                 "averaged $110/t in 2025e (USGS MCS 2026).",
     },
     {   # ── Spinel ───────────────────────────────────────────────────────
         "name":                  "spinel",
@@ -2200,6 +2212,27 @@ def snapshot_metal_prices(config: MineralValueConfig) -> pd.DataFrame:
 # LME metals in a single JSON call.  Quotes in USD per troy ounce; we
 # convert to USD/kg here.  Only runs when the user has supplied a real key.
 
+def _metals_dev_quote_date(payload: dict) -> Optional[str]:
+    """The UTC day metals.dev collected a payload's metal quotes, or None.
+
+    `timestamps.metal` is what the latest endpoint sends and a root `timestamp`
+    is the single-reading form; `date` and `timestamp_iso` are the older names,
+    still accepted.  `timestamps.currency` dates the exchange rates, not the
+    metals, so it is never read, and neither is the clock: the day a quote was
+    fetched is the build's `catalog_date`, and a payload that cannot say when
+    its quotes were collected leaves `live_price_date` blank.
+    """
+    stamps = payload.get("timestamps")
+    metal = stamps.get("metal") if isinstance(stamps, dict) else None
+    for raw in (metal, payload.get("timestamp"),
+                payload.get("date"), payload.get("timestamp_iso")):
+        if isinstance(raw, str):
+            when = pd.to_datetime(raw, utc=True, errors="coerce")
+            if pd.notna(when):
+                return when.strftime("%Y-%m-%d")
+    return None
+
+
 def fetch_metals_dev(config: MineralValueConfig) -> pd.DataFrame:
     """
     Live metal prices from metals.dev (https://metals.dev).
@@ -2236,7 +2269,9 @@ def fetch_metals_dev(config: MineralValueConfig) -> pd.DataFrame:
         say("     WARN  metals.dev returned no `metals` payload")
         return pd.DataFrame()
 
-    date = payload.get("date") or payload.get("timestamp_iso") or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    date = _metals_dev_quote_date(payload)
+    if date is None:
+        say("     WARN  metals.dev sent no metal timestamp; quote dates left blank")
 
     rows = []
     for entry in MINERAL_REFERENCE:
@@ -2253,7 +2288,7 @@ def fetch_metals_dev(config: MineralValueConfig) -> pd.DataFrame:
         rows.append({
             "name":              entry["name"],
             "live_price_usd_per_kg": price_kg,
-            "live_price_date":   str(date)[:10],
+            "live_price_date":   date,
             "live_price_source": f"metals.dev:{key}",
         })
         say(f"     OK  {entry['name']:11s} = {usd_per_toz:>10,.2f} USD/troy_oz "
@@ -2691,6 +2726,12 @@ def mineral_to_element_value(
     """
     For a MINERAL, compute its implied USD/kg from its elemental yields.
     Returns None if the mineral isn't in the catalog or has no yields.
+
+    This values refined metal sold at refined prices: every yield is paid in
+    full, with no payable fraction, treatment charge or refining charge.  That
+    overstates what a miner receives for concentrate; registered PGE offtake
+    terms pay about 90% of the PGE and 85% of the Ni and Cu, less those charges
+    (Cowen, Agnello & Petit 2012).
     """
     row = catalog[catalog["name"] == mineral]
     if row.empty:

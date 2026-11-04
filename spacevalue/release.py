@@ -43,6 +43,11 @@ from . import catalog as _catalog
 ASSET_MANIFEST = "manifest.json"
 MANIFEST_VERSION = 1
 
+# What a manifest declares of each quote.  `recorded_date` and `note` are the
+# snapshot's, not the manifest's.
+_QUOTE_FIELDS = ("ticker", "source", "close", "unit", "close_date")
+_PRICE_REL_TOL = 1e-9
+
 
 def table_filename(destination: str) -> str:
     """The asset name of one destination's table."""
@@ -66,6 +71,61 @@ def _source_commit() -> str:
     except (OSError, subprocess.SubprocessError):
         return ""
     return out.stdout.strip() if out.returncode == 0 else ""
+
+
+def _quote_record(ticker, source, close, unit, close_date) -> dict:
+    """A quote as a manifest declares it, the close as its unrounded repr."""
+    return {"ticker": ticker, "source": source, "close": close,
+            "unit": unit, "close_date": close_date}
+
+
+def _quote_records(records: List[dict]) -> List[str]:
+    """Declared quote records as sorted strings, so one that is doubled counts
+    twice and the order they are listed in does not count."""
+    return sorted(json.dumps({f: r.get(f) for f in _QUOTE_FIELDS}, sort_keys=True)
+                  for r in records)
+
+
+def _quoted_row_problems(fname: str, t: pd.DataFrame, dest: str,
+                         expected: pd.DataFrame) -> List[str]:
+    """What is wrong with the rows `t` prices from the quotes in `expected`.
+
+    A checksum says a table is the one the manifest named, not that it is
+    right: each quoted metal must appear once, with the source, date and price
+    its close implies, and carry the price the destination rule gives that
+    terrestrial price.  Closeness, not equality: the gate reads floats with
+    pandas' default parser.
+    """
+    bad = []
+    where = t["live_price_source"].notna()
+    names = sorted(t.loc[where, "name"].astype(str))
+    if names != sorted(expected["name"]):
+        bad.append("%s prices %s from quotes, expected %s"
+                   % (fname, names, sorted(expected["name"])))
+    for q in expected.itertuples():
+        rows = t[t["name"] == q.name]
+        if len(rows) != 1:
+            bad.append("%s has %d rows for %s" % (fname, len(rows), q.name))
+            continue
+        row = rows.iloc[0]
+        if row["live_price_source"] != q.live_price_source:
+            bad.append("%s: %s is quoted by %s, the snapshot says %s"
+                       % (fname, q.name, row["live_price_source"], q.live_price_source))
+        if row["live_price_date"] != q.live_price_date:
+            bad.append("%s: %s is dated %s, the snapshot says %s"
+                       % (fname, q.name, row["live_price_date"], q.live_price_date))
+        live = q.live_price_usd_per_kg
+        routed = _catalog.in_space_price_usd_per_kg(q.name, dest, live)
+        want = {"live_price_usd_per_kg": live,
+                "price_usd_per_kg": live if routed is None else routed[0]}
+        if routed is not None:
+            want["terrestrial_price_usd_per_kg"] = live
+        for col, value in want.items():
+            got = float(pd.to_numeric(row[col], errors="coerce"))
+            if not math.isclose(got, value, rel_tol=_PRICE_REL_TOL):
+                bad.append("%s: %s %s is %s, its quote implies %r"
+                           % (fname, q.name, col, row[col], value))
+    return bad
 
 
 def build_release(snapshot: str, out_dir: str,
@@ -111,8 +171,7 @@ def build_release(snapshot: str, out_dir: str,
         "source_commit": _source_commit(),
         "quote_snapshot": snapshot,
         "quotes": [
-            {"ticker": q.ticker, "source": q.source, "close": repr(q.close),
-             "unit": q.unit, "close_date": q.close_date}
+            _quote_record(q.ticker, q.source, repr(q.close), q.unit, q.close_date)
             for q in sorted(rows, key=lambda q: q.ticker)
         ],
         "destinations": list(_catalog.DELIVERY_DESTINATIONS),
@@ -171,12 +230,15 @@ def check_release(out_dir: str) -> List[str]:
         if m.get("catalog_date") != recorded:
             bad.append("catalog_date %s, but the snapshot was recorded %s"
                        % (m.get("catalog_date"), recorded))
-        listed = {(q["ticker"], q["close"]) for q in m.get("quotes", [])}
-        if listed != {(q.ticker, repr(q.close)) for q in snap}:
+        want_quotes = [_quote_record(q.ticker, q.source, repr(q.close), q.unit,
+                                     q.close_date) for q in snap]
+        if _quote_records(m.get("quotes", [])) != _quote_records(want_quotes):
             bad.append("the manifest's quotes are not the snapshot's")
 
     n_reference = len(_catalog.MINERAL_REFERENCE)
     n_quoted = len(_catalog.metal_tickers())
+    expected = (_catalog.metal_prices_from_quotes(_quotes.closes_by_ticker(snap))
+                if snap else None)
     for fname, entry in sorted(files.items()):
         p = os.path.join(out_dir, fname)
         dest = entry.get("destination")
@@ -220,4 +282,6 @@ def check_release(out_dir: str) -> List[str]:
         if quoted != n_quoted:
             bad.append("%s prices %d rows from quotes; the snapshot quotes %d"
                        % (fname, quoted, n_quoted))
+        if expected is not None and dest in want:
+            bad.extend(_quoted_row_problems(fname, t, dest, expected))
     return bad

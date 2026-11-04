@@ -10,6 +10,35 @@ new contract is not evidence that a number moved.
 
 ## Data contracts
 
+### 1.18.0 - 2026-11-04
+
+**A price release moves, and no quoted price does.** Built from the same closes,
+the five quoted metals and every price derived from them are unchanged. What
+moves is this, from General_Research's candidates, and the eight fixtures in
+`tests/data/prices-2026-10-07/` were re-recorded with it. An already published
+release is unchanged; the next `prices-*` release carries all of it.
+
+- **Market depth** (`annual_market_kg`, shipped-to-Earth ceilings): osmium 1,000
+  to 500 kg/yr (rc-125; the IPA/SFA factsheet, about 500-550 kg/yr over 2024-25),
+  gold 3.0e6 to 3.3e6 (rc-147), nickel 3.6e9 to 3.9e9 (rc-148), palladium 2.1e5
+  to 1.9e5 (rc-149), platinum 1.8e5 to 1.7e5 (rc-150), copper 2.2e10 to 2.3e10
+  (rc-151), each USGS MCS 2026 mine production; chromium 4.4e10 to 4.7e10
+  (rc-152) and titanium 3.0e8 to 3.2e8 (rc-153), MCS 2025.
+- **Reference prices**: gold 150,000 to 145,506 USD/kg (rc-142) and palladium
+  48,000 to 43,853.6 (rc-141), the LBMA prices on the table's own reference date,
+  2026-05-29. Both are quoted metals, so a snapshot build does not price from
+  them; they are what a build with no quote falls back on.
+- **Notes and metadata**: the cited notes of osmium (rc-126), cobalt (rc-143),
+  plagioclase (rc-145) and iron (rc-146), pyroxene's formula to
+  `(Mg,Fe,Ca)2Si2O6` (rc-242), and the coplanar GTO burn in GEO's destination
+  note to 1,477 m/s, so the launch site's latitude costs 359, not 358 (rc-177;
+  a comparison, not a term in the price).
+- **`live_price_date` on a live metals.dev build** (rc-267): the provider's
+  `timestamps.metal` as a UTC day, then a root `timestamp`, then the older `date`
+  and `timestamp_iso`. The fetch day was stamped on a quote that did not say
+  otherwise, and `timestamps.currency` is never read. A payload with none of
+  these leaves the date blank and says so; `catalog_date` stays the build's.
+
 ### 1.17.0 - 2026-10-26
 
 **No number moved.** Built from the same closes, every table is the one data
@@ -28,6 +57,25 @@ come from and what a table's date means:
 code.
 
 ## Package releases
+
+### 0.3.0 - 2026-11-04
+
+Data contract 1.18.0, above. Besides that:
+
+- `spacevalue check-release` holds a release to its snapshot, not just to its
+  own checksums. Every quote the manifest declares must match the snapshot in
+  all five fields, each once and in any order, where it compared a set of ticker
+  and close (rc-276). Every quoted metal must appear once, with its quote's
+  source and date and the price its close implies, and carry the price
+  `in_space_price_usd_per_kg` gives it, where it counted five non-blank sources
+  (rc-277). No frozen snapshot changed.
+- `asteroid_refinery`'s composition memo works (rc-243). The loop over phases
+  overwrote the composition key with a phase name, so the memo was never filled,
+  and a composition `_composition_key` declines reached the write with nothing
+  bound. **No float moves**: `tests/test_cargo_golden.py` holds unchanged.
+- `mineral_to_element_value` and `_mineral_implied_value` say what they assume:
+  refined metal at refined prices, with no payable fraction, treatment or
+  refining charge (rc-121). The value is unchanged.
 
 ### 0.2.0 - 2026-10-26
 

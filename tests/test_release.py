@@ -7,10 +7,12 @@ that passes a damaged release is the failure economicspace would inherit,
 because it trusts whatever the manifest vouches for.
 """
 
+import hashlib
 import json
 import os
 import shutil
 
+import pandas as pd
 import pytest
 
 import spacevalue
@@ -111,6 +113,96 @@ def test_quotes_that_are_not_the_snapshots_are_caught(copy):
     m["quotes"][0]["close"] = repr(float(m["quotes"][0]["close"]) + 1.0)
     _write_manifest(copy, m)
     assert any("not the snapshot" in x for x in check_release(copy))
+
+
+def _sha(path):
+    with open(path, "rb") as fh:
+        return hashlib.sha256(fh.read()).hexdigest()
+
+
+@pytest.mark.parametrize("damage", [
+    lambda q: q[0].update(unit="lb"),
+    lambda q: q[0].update(source="elsewhere"),
+    lambda q: q[0].update(close_date="1999-01-01"),
+    lambda q: q[0].pop("unit"),
+    lambda q: q[0].pop("source"),
+    lambda q: q[0].pop("close_date"),
+    lambda q: q.append(dict(q[0])),
+    lambda q: q.append({**q[0], "source": "elsewhere"}),
+], ids=["wrong-unit", "wrong-source", "wrong-date", "no-unit", "no-source",
+        "no-date", "duplicate", "conflicting-duplicate"])
+def test_every_declared_quote_field_is_held_to_the_snapshot(copy, damage):
+    m = _manifest(copy)
+    damage(m["quotes"])
+    _write_manifest(copy, m)
+    assert any("not the snapshot" in b for b in check_release(copy))
+
+
+def test_the_order_of_the_quotes_does_not_matter(copy):
+    m = _manifest(copy)
+    m["quotes"].reverse()
+    _write_manifest(copy, m)
+    assert check_release(copy) == []
+
+
+def _rehash(d, fname, edit):
+    """Edit one table and vouch for it, so only the content can give it away."""
+    path = os.path.join(d, fname)
+    t = pd.read_csv(path, dtype=str, keep_default_na=False)
+    edit(t)
+    t.to_csv(path, index=False, lineterminator="\r\n")
+    m = _manifest(d)
+    m["files"][fname].update(bytes=os.path.getsize(path), sha256=_sha(path))
+    _write_manifest(d, m)
+
+
+def _set(t, name, col, value):
+    t.loc[t["name"] == name, col] = value
+
+
+EARTH = spacevalue.table_filename("earth_surface")
+CISLUNAR = spacevalue.table_filename("cislunar")
+GEO = spacevalue.table_filename("geo")
+
+
+def _add(t, name, col, amount):
+    _set(t, name, col, str(float(t.loc[t["name"] == name, col].iloc[0]) + amount))
+
+
+def _double(t, name, col):
+    _add(t, name, col, float(t.loc[t["name"] == name, col].iloc[0]))
+
+
+@pytest.mark.parametrize("fname, edit", [
+    (EARTH, lambda t: (_double(t, "gold", "live_price_usd_per_kg"),
+                       _double(t, "gold", "price_usd_per_kg"))),
+    (CISLUNAR, lambda t: (_double(t, "gold", "live_price_usd_per_kg"),
+                          _double(t, "gold", "terrestrial_price_usd_per_kg"),
+                          _add(t, "gold", "price_usd_per_kg", 1000.0))),
+    (EARTH, lambda t: _add(t, "gold", "price_usd_per_kg", 1000.0)),
+    (GEO, lambda t: _add(t, "gold", "price_usd_per_kg", 1000.0)),
+    (EARTH, lambda t: _set(t, "gold", "live_price_date", "1999-01-01")),
+    (EARTH, lambda t: _set(t, "gold", "live_price_source", "elsewhere")),
+    (EARTH, lambda t: _set(t, "palladium", "name", "gold")),
+], ids=["live-earth", "live-cislunar", "final-earth", "final-geo", "date", "source",
+        "duplicate-metal"])
+def test_a_quoted_row_is_held_to_its_quote_behind_a_good_checksum(copy, fname, edit):
+    _rehash(copy, fname, edit)
+    bad = check_release(copy)
+    assert bad and all(fname in b for b in bad), bad
+
+
+def test_a_reassigned_ticker_is_caught(copy):
+    def swap(t):
+        at = t["live_price_source"] != ""
+        t.loc[at, "live_price_source"] = list(t.loc[at, "live_price_source"])[::-1]
+    _rehash(copy, EARTH, swap)
+    assert any("is quoted by" in b for b in check_release(copy))
+
+
+def test_a_rewritten_table_with_the_same_numbers_passes(copy):
+    _rehash(copy, EARTH, lambda t: None)
+    assert check_release(copy) == []
 
 
 def test_a_table_rewritten_with_lf_is_caught(copy):
