@@ -13,7 +13,7 @@ orbit, because every kilogram already up there is a kilogram nobody has to
 launch.
 
 ```bash
-pip install git+https://github.com/loggger101/spacevalue@v0.2.0
+pip install git+https://github.com/loggger101/spacevalue@v0.3.0
 ```
 
 ```python
@@ -170,7 +170,7 @@ column says where it came from.
 
 Live prices are still there, opt-in, for anyone who wants today's and accepts
 that it cannot be repeated: `use_yfinance=True` or `spacevalue build --live`,
-with the extra `pip install "spacevalue[live] @ git+https://github.com/loggger101/spacevalue@v0.2.0"`.
+with the extra `pip install "spacevalue[live] @ git+https://github.com/loggger101/spacevalue@v0.3.0"`.
 Asking for live and recorded quotes at once is refused.
 
 The snapshot code is [spacecost's](https://github.com/loggger101/spacecost)
@@ -187,11 +187,14 @@ The publish workflow builds it on Windows, runs `spacevalue check-release`,
 and uploads nothing unless the gate passes. The gate checks:
 
 - every destination has a table, and every byte matches the manifest
-- the manifest's quotes are the snapshot's, and its date is the snapshot's
+- the manifest's quotes are the snapshot's, record for record (ticker, source,
+  close, unit and close date, each once), and its date is the snapshot's
 - every table is CRLF, has one row per reference entry, and carries one data
   contract, one date and its own destination
 - a blank price appears only on a row marked `unpriced`
-- every quoted metal is priced from its quote
+- every quoted metal appears once, with its quote's source and date and the
+  price its close implies, and carries the price the destination rule gives
+  that terrestrial price
 
 A release is never overwritten. economicspace installs one as its Stage 2, the
 same way it installs a published asteroid catalog as its Stage 1: it pins a
@@ -207,7 +210,7 @@ and on 3.11 they come out one bit different.
 ## Two version numbers
 
 - **The data contract**, `MineralValueConfig.pipeline_version`, currently
-  `1.17.0`. Stamped into every row. It moves when a change moves any number a
+  `1.18.0`. Stamped into every row. It moves when a change moves any number a
   build produces, and its history is economicspace's Stage 2 changelog up to
   1.16.0 and [CHANGELOG.md](CHANGELOG.md) from there.
 - **The package**, `spacevalue.__version__`. It moves for anything else.
