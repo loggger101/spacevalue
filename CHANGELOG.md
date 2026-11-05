@@ -10,6 +10,23 @@ new contract is not evidence that a number moved.
 
 ## Data contracts
 
+### 1.19.0 - 2026-11-04
+
+**One in-space demand class is one market** (rc-261). No price, ceiling or demand
+total moves. Every table gains `market_id`, naming the allowance each row spends:
+`in-space shielding`, `in-space structural`, `in-space chemical` or
+`in-space propellant` for a commodity sold at an in-space destination, and the
+commodity's own name for one shipped to Earth or sold at `earth_surface`, whose
+world markets stay separate. At cislunar, 59 rows are 20 markets.
+
+`annual_market_kg` gives every row of a class the class's whole share of one
+import budget, and each row spent its own copy. 20 t of olivine and pyroxene sold
+at full price into a 15 t/yr shielding market, $32.06M; on one allowance at the
+default surplus fraction it is 15 t full and 5 t discounted, $28.05M. The
+`tests/data/prices-2026-10-07/` fixtures are re-recorded with the column and the
+stamp; only those two moved. An already published release is unchanged, reads as
+it did, and keeps a market per name; the next `prices-*` release carries this.
+
 ### 1.18.0 - 2026-11-04
 
 **A price release moves, and no quoted price does.** Built from the same closes,
@@ -57,6 +74,27 @@ come from and what a table's date means:
 code.
 
 ## Package releases
+
+### 0.4.0 - 2026-11-04
+
+Data contract 1.19.0, above. economicspace sees none of this until it repins,
+and the shared markets need a `prices-*` release at that contract as well.
+
+- **`phase_market_key` reads the table's `market_id`**, through `market_table`,
+  which now returns a `MarketTable`: the same dict, with `.ids` beside it. Every
+  consumer that already pools on the key pools by class without changing.
+- **A pooled allowance goes to the dearer phase first** in `_capped_sale_value`.
+  The allowance is settled ahead of the sum, and the sum keeps its order, so a
+  sale nothing pools gives the same bits. `optimal_payload_mix` needed no change:
+  its walk is already in price order, and its result matched an independent
+  linear program on 6,000 random loads with shared allowances, ties and tiers.
+- **A body with no named fraction is all residual** (rc-263). The residual floor
+  required some named mass, so a wholly Unknown composition was worth 0 while a
+  silicate fraction of 1e-12 earned the whole floor. `asteroid_bulk_value_usd_per_kg`,
+  `asteroid_phase_table` and `asteroid_best_phase_usd_per_kg` now give it the
+  bulk-silicate quote, as one phase carrying the silicates ceiling. A negative
+  sum, a malformed row, is unchanged, and a value is not a measurement: Unknown
+  stays Unknown, and a body with no mass or density is still declined.
 
 ### 0.3.0 - 2026-11-04
 
