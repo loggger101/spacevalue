@@ -28,7 +28,7 @@ Rules that follow from that:
 """
 import functools
 import json
-from typing import (Any, Dict, Iterator, List, Mapping, Optional, Tuple,
+from typing import (Any, Dict, Iterable, Iterator, List, Mapping, Optional, Tuple,
                     Union)
 
 import pandas as pd
@@ -61,10 +61,11 @@ _MINERAL_CACHE: Tuple[Optional[pd.DataFrame], Dict[str, Tuple[Optional[float], s
 
 
 def _mineral_table(mineral_df: pd.DataFrame) -> Dict[str, Tuple[Any, ...]]:
-    """name → (price, yields_json, net price, refining kWh/kg, used in space).
+    """name → (price, yields_json, net price, refining kWh/kg, used in space,
+    forced as-is).
 
-    Built once and memoised.  The last three are v1.25.0's and are read only
-    when the refinery flies; see `load_all_catalogs`.
+    Built once and memoised.  The third to fifth are v1.25.0's and are read only
+    when the refinery flies; see `load_all_catalogs`.  The last is `sold_as_is`.
     """
     global _MINERAL_CACHE
     cached_df, mapping = _MINERAL_CACHE
@@ -83,11 +84,13 @@ def _mineral_table(mineral_df: pd.DataFrame) -> Dict[str, Tuple[Any, ...]]:
                if "refining_kwh_per_kg" in mineral_df.columns else [0.0] * n)
     route_col = (mineral_df["value_route"] if "value_route" in mineral_df.columns
                  else [None] * n)
+    as_is_col = (mineral_df[_SOLD_AS_IS_COL]
+                 if _SOLD_AS_IS_COL in mineral_df.columns else [False] * n)
 
     mapping = {}
-    for name, price, yields, net, kwh, route in zip(
+    for name, price, yields, net, kwh, route, as_is in zip(
         mineral_df["name"], mineral_df["price_usd_per_kg"], yields_col,
-        net_col, kwh_col, route_col,
+        net_col, kwh_col, route_col, as_is_col,
     ):
         key = str(name)
         if key in mapping:
@@ -98,6 +101,7 @@ def _mineral_table(mineral_df: pd.DataFrame) -> Dict[str, Tuple[Any, ...]]:
             float(net) if net is not None and pd.notna(net) else None,
             float(kwh) if kwh is not None and pd.notna(kwh) else 0.0,
             route == "used in space",
+            bool(as_is),
         )
     _MINERAL_CACHE = (mineral_df, mapping)
     return mapping
@@ -397,11 +401,38 @@ def _phase_value(
 _REFINING_COLS = ("refining_kwh_per_kg", "price_before_processing_usd_per_kg",
                   "value_route")
 _NET_PRICE_COL = "price_net_usd_per_kg"
+# Set only by `sold_as_is`; a table without it decides every route on net prices.
+_SOLD_AS_IS_COL = "sold_as_is"
 
 
 def refinery_flown(mineral_df: pd.DataFrame) -> bool:
     """True when `load_all_catalogs` switched this table to gross prices."""
     return _NET_PRICE_COL in mineral_df.columns
+
+
+def sold_as_is(
+    mineral_df: pd.DataFrame, phases: Optional[Iterable[str]] = None,
+) -> pd.DataFrame:
+    """A copy of a flown table whose phases sell as they are, not refined.
+
+    `_phase_terms` picks a route on Stage 2's net prices, whose fixed deduction
+    stands in for a plant.  Once the refinery flies, the mission pays for its
+    real power and plant instead, so the net order is not the mission's: a
+    far-out or RTG mission can do better selling less per kilogram at a lower
+    energy.  A consumer evaluates this table beside the original and keeps the
+    better mission on its own objective; neither route is better in general, so
+    the original stays in the search.
+
+    `phases` limits it to those names, for a search of one phase's route; None
+    takes every phase.  A phase with no yields, or with no as-is price, has only
+    one route and keeps it.
+    """
+    if not refinery_flown(mineral_df):
+        raise ValueError("sold_as_is needs a table with the refinery flown")
+    table = mineral_df.copy()
+    table[_SOLD_AS_IS_COL] = (True if phases is None
+                              else table["name"].isin(set(phases)))
+    return table
 
 
 def _yield_terms(
@@ -470,6 +501,8 @@ def _phase_terms(
         # The four-fraction walk's only rule: a mineral with yields is priced
         # by them.  Unchanged by the refinery; only who pays moves.
         return gross, wh
+    if entry[5] and as_is_gross is not None:
+        return as_is_gross, as_is_wh
     # The route is decided on NET prices, which is Stage 2's own estimate of
     # what each costs to deliver usable; the refinery then charges the flown
     # cost of the route chosen.  A tie is sold as it is.

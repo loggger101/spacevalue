@@ -75,6 +75,21 @@ code.
 
 ## Package releases
 
+### 0.5.0 - 2026-11-05
+
+Data contract 1.19.0, unchanged: **no number moves**, and `tests/test_cargo_golden.py`
+holds. economicspace sees none of this until it repins.
+
+- **`sold_as_is(mineral_df, phases=None)`** (rc-279, the spacevalue half). With
+  the refinery flown, `_phase_terms` picks a route on Stage 2's net prices, whose
+  fixed deduction stands in for a plant the mission then really pays for, so a
+  mission search never sees the other route. This returns a copy of the table
+  whose phases sell as they are, for a consumer to evaluate beside the original
+  and keep the better mission on its own objective. On the LEO fixture magnetite
+  goes from refined to as-is, at a lower price and a lower energy. The original
+  table keeps its route. economicspace's search of the two is not built: it needs
+  this release pinned, which needs a `prices-*` release at this contract.
+
 ### 0.4.0 - 2026-11-04
 
 Data contract 1.19.0, above. economicspace sees none of this until it repins,
