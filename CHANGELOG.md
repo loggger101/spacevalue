@@ -58,6 +58,20 @@ code.
 
 ## Package releases
 
+### 0.4.0 - 2026-11-04
+
+Data contract 1.18.0 unchanged: no table moves, because a price table holds no
+body. What moves is what `spacevalue.cargo` says a body is worth, and
+economicspace sees it only when it repins.
+
+- **A body with no named fraction is all residual** (rc-263). The residual floor
+  required some named mass, so a wholly Unknown composition was worth 0 while a
+  silicate fraction of 1e-12 earned the whole floor. `asteroid_bulk_value_usd_per_kg`,
+  `asteroid_phase_table` and `asteroid_best_phase_usd_per_kg` now give it the
+  bulk-silicate quote, as one phase carrying the silicates ceiling. A negative
+  sum, a malformed row, is unchanged, and a value is not a measurement: Unknown
+  stays Unknown, and a body with no mass or density is still declined.
+
 ### 0.3.0 - 2026-11-04
 
 Data contract 1.18.0, above. Besides that:

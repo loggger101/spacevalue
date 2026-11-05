@@ -760,6 +760,9 @@ def asteroid_bulk_value_usd_per_kg(
     v1.3.3, "Other" residual mass (Module 1 fractions sum to less than 1
     in every type) was silently zero-valued; now treated as bulk silicate
     at $0.05/kg floor.
+
+    v0.4.0, a body with no named fraction is ALL residual, so it takes the same
+    floor: a silicate fraction of 1e-12 got it and a blank row got 0.
     """
     key = _composition_key(asteroid_row)
     if key is not None:
@@ -798,8 +801,9 @@ def asteroid_bulk_value_usd_per_kg(
         total    += f * float(price)
         frac_sum += f
 
-    # Residual "other" mass; value at silicate floor so it doesn't vanish.
-    if 0.0 < frac_sum < 1.0:
+    # Residual "other" mass; value at silicate floor so it doesn't vanish.  Zero
+    # named mass is the whole body; a negative sum is a malformed row, left alone.
+    if 0.0 <= frac_sum < 1.0:
         other_frac     = 1.0 - frac_sum
         silicate_price = _mineral_price(mineral_df, "silicates") or 0.05
         total += other_frac * float(silicate_price)
@@ -893,7 +897,9 @@ def asteroid_phase_table(
     The same four taxonomy fractions `asteroid_bulk_value_usd_per_kg` blends,
     but kept SEPARATE so a mission can choose what to load rather than being
     handed the mean.  The residual (Module 1's fractions sum to less than 1) is
-    included as bulk silicate, matching the bulk function's floor treatment.
+    included as bulk silicate, matching the bulk function's floor treatment.  A
+    body with no named fraction is one row of it: AsteroidCatalog defines Unknown
+    as all residual.
 
     Phases with zero fraction are dropped; you cannot select what is not
     there.
@@ -921,7 +927,7 @@ def asteroid_phase_table(
         phases.append((mineral_name, frac, price))
         frac_sum += frac
 
-    if 0.0 < frac_sum < 1.0:
+    if 0.0 <= frac_sum < 1.0:
         # Composition fractions sum to less than 1; the remainder is undifferentiated
         # rock and is valued at the bulk-silicate floor.  ⚠️  It is priced at the
         # `silicates` QUOTE, which is why `_PHASE_MARKET_ALIAS` below must give it
