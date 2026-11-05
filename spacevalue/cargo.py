@@ -103,6 +103,18 @@ def _mineral_table(mineral_df: pd.DataFrame) -> Dict[str, Tuple[Any, ...]]:
     return mapping
 
 
+class MarketTable(dict):
+    """name -> ceiling in kg/yr, and `ids`: name -> the market it sells into.
+
+    A dict, so every reader of a ceiling is unchanged.  `ids` is empty for a
+    table older than data contract 1.19.0, whose rows are each their own market.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.ids: Dict[str, str] = {}
+
+
 _MARKET_CACHE: Tuple[Optional[pd.DataFrame], Dict[str, float]] = (None, {})
 
 
@@ -120,10 +132,14 @@ def market_table(mineral_df: pd.DataFrame) -> Optional[Dict[str, float]]:
     if "annual_market_kg" not in mineral_df.columns:
         _MARKET_CACHE = (mineral_df, {})
         return None
-    mapping = {}
+    mapping = MarketTable()
     for name, qty in zip(mineral_df["name"], mineral_df["annual_market_kg"]):
         if pd.notna(qty):
             mapping.setdefault(str(name), float(qty))
+    if "market_id" in mineral_df.columns:
+        for name, market in zip(mineral_df["name"], mineral_df["market_id"]):
+            if pd.notna(market):
+                mapping.ids.setdefault(str(name), str(market))
     _MARKET_CACHE = (mineral_df, mapping)
     return mapping or None
 
@@ -859,11 +875,18 @@ def phase_market_key(markets: Optional[Dict[str, float]], phase: str) -> str:
     place"; that was the intent, and the code gave each its own place.  The two
     co-occur on 100% of bodies and are a median 84% of the load, so this was
     not a corner.
+
+    v0.4.0: a row's own name is only its market where the table says so.  The
+    commodities of one in-space demand class split one import budget, and each
+    held a separate copy of it: olivine and pyroxene sold 30 t/yr into a 15 t/yr
+    shielding market.  The table's `market_id` names the allowance, and an older
+    table without one keeps a market per name.
     """
+    ids = getattr(markets, "ids", {})
     if markets and phase in markets:
-        return phase
+        return ids.get(phase, phase)
     alias = _PHASE_MARKET_ALIAS.get(phase)
-    return alias if alias is not None else phase
+    return phase if alias is None else ids.get(alias, alias)
 
 
 def phase_market_kg(markets: Optional[Dict[str, float]], phase: str) -> float:
@@ -1096,26 +1119,31 @@ def _capped_sale_value(
     composition residual each got the full silicates ceiling, which is one
     market sold twice, on 100% of bodies.
 
-    ⚠️  Insertion order decides WHICH phase is recorded as unsold when a pooled
-    allowance runs out.  It does not change `value`, because the only pair that
-    shares a key today is priced identically by construction -- the residual is
-    priced at the silicates quote.  If a future alias ever joins two phases at
-    DIFFERENT prices, this loop would need to spend the allowance on the dearer
-    one first, and the order it happens to receive would stop being good
-    enough.
+    v0.4.0: a demand class joins phases at DIFFERENT prices, so a pooled
+    allowance goes to the dearer phase first: a kilogram gains `price x (1 -
+    surplus_price_frac)` from selling inside it, and that is largest there.  The
+    grants are settled ahead of the sum, and the sum keeps the order it received:
+    a sale nothing pools reads the same floats as before in the same order, and
+    so gives the same bits.
     """
     value   = 0.0
     unsold  = 0.0
     surplus = 0.0
     sells   = surplus_price_frac > 0.0
     remaining: Dict[str, float] = {}
-    for kg, price, mkt, key in sale_terms:
+    grants: Dict[int, float] = {}
+    for i in sorted(range(len(sale_terms)), key=lambda t: -sale_terms[t][1]):
+        kg, _price, mkt, key = sale_terms[i]
         allowance = remaining.get(key)
         if allowance is None:
             allowance = mkt * window_yr
-        if kg > allowance:
-            over = kg - allowance
-            value += allowance * price
+        grants[i] = allowance if kg > allowance else kg
+        remaining[key] = 0.0 if kg > allowance else allowance - kg
+    for i, (kg, price, _mkt, _key) in enumerate(sale_terms):
+        granted = grants[i]
+        if kg > granted:
+            over = kg - granted
+            value += granted * price
             if sells:
                 # v1.22.0.  The surplus is carried and sold, at a discount.
                 # Written as a second term rather than folded into one blended
@@ -1126,10 +1154,8 @@ def _capped_sale_value(
                 surplus += over
             else:
                 unsold  += over
-            remaining[key] = 0.0
         else:
             value += kg * price
-            remaining[key] = allowance - kg
     return value, unsold, surplus
 
 

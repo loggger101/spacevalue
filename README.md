@@ -210,7 +210,7 @@ and on 3.11 they come out one bit different.
 ## Two version numbers
 
 - **The data contract**, `MineralValueConfig.pipeline_version`, currently
-  `1.18.0`. Stamped into every row. It moves when a change moves any number a
+  `1.19.0`. Stamped into every row. It moves when a change moves any number a
   build produces, and its history is economicspace's Stage 2 changelog up to
   1.16.0 and [CHANGELOG.md](CHANGELOG.md) from there.
 - **The package**, `spacevalue.__version__`. It moves for anything else.

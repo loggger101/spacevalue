@@ -178,7 +178,7 @@ class MineralValueConfig:
     # What each contract changed is CHANGELOG.md, not this comment: the
     # dashboard economicspace builds scrapes a field's comment block as its
     # help, and a changelog here was once 267 lines of it.
-    pipeline_version: str = "1.18.0"
+    pipeline_version: str = "1.19.0"
 
     # ─── DISPLAY ─────────────────────────────────────────────────────────────
     preview_rows:      int = 20   # rows per table in the CLI preview
@@ -1085,6 +1085,25 @@ def annual_market_kg(
         _COMMODITY_CLASS.get(str(name), "shielding"), _DEMAND_SHARE_BY_CLASS["trace"]
     )
     return IN_SPACE_ANNUAL_DEMAND_KG[dest] * share
+
+
+def market_id(
+    name: str, destination: str, route: Optional[str] = None,
+) -> str:
+    """The market `name` sells into, which is what a ceiling belongs to.
+
+    `annual_market_kg` gives every commodity of a demand class that class's
+    whole share of one import budget, so each row carries the SAME allowance
+    and the rows of a class are substitutes drawing on it.  This names the
+    allowance; two rows with one id spend one ceiling.
+
+    Shipped to Earth, or sold at Earth, a commodity has its own world market, so
+    the id is its name.  Two ceilings that merely match are not one market.
+    """
+    dest = str(destination or "").strip().lower()
+    if dest not in IN_SPACE_ANNUAL_DEMAND_KG or route == "shipped to Earth":
+        return str(name)
+    return "in-space " + _COMMODITY_CLASS.get(str(name), "shielding")
 
 
 # ─── IN-SPACE MANUFACTURING  (v1.6.0) ────────────────────────────────────────
@@ -2642,6 +2661,11 @@ def build_mineral_value_catalog(
     catalog["annual_market_kg"] = [
         annual_market_kg(str(n), config.delivery_destination,
                          None if pd.isna(r) else str(r))
+        for n, r in zip(catalog["name"], _routes)
+    ]
+    catalog["market_id"] = [
+        market_id(str(n), config.delivery_destination,
+                  None if pd.isna(r) else str(r))
         for n, r in zip(catalog["name"], _routes)
     ]
 
