@@ -13,7 +13,7 @@ orbit, because every kilogram already up there is a kilogram nobody has to
 launch.
 
 ```bash
-pip install git+https://github.com/loggger101/spacevalue@v0.4.0
+pip install git+https://github.com/loggger101/spacevalue@v0.5.0
 ```
 
 ```python
@@ -170,7 +170,7 @@ column says where it came from.
 
 Live prices are still there, opt-in, for anyone who wants today's and accepts
 that it cannot be repeated: `use_yfinance=True` or `spacevalue build --live`,
-with the extra `pip install "spacevalue[live] @ git+https://github.com/loggger101/spacevalue@v0.4.0"`.
+with the extra `pip install "spacevalue[live] @ git+https://github.com/loggger101/spacevalue@v0.5.0"`.
 Asking for live and recorded quotes at once is refused.
 
 The snapshot code is [spacecost's](https://github.com/loggger101/spacecost)
