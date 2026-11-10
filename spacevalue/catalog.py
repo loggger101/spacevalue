@@ -178,7 +178,7 @@ class MineralValueConfig:
     # What each contract changed is CHANGELOG.md, not this comment: the
     # dashboard economicspace builds scrapes a field's comment block as its
     # help, and a changelog here was once 267 lines of it.
-    pipeline_version: str = "1.19.0"
+    pipeline_version: str = "1.20.0"
 
     # ─── DISPLAY ─────────────────────────────────────────────────────────────
     preview_rows:      int = 20   # rows per table in the CLI preview
@@ -248,6 +248,14 @@ def _per_tonne_to_per_kg(usd_per_tonne: float) -> float:
 # you refresh ref_price_usd_per_kg values (the numbers below, when a fresh
 # audit re-reviews the static prices, bump this stamp).
 _REF_PRICE_DATE = "2026-05-29"
+
+# Data contract 1.20.0: the metals General_Research flagged as stale (rc-302 to
+# rc-308, rc-313, rc-324, rc-325) were re-reviewed together on this date, each
+# against the latest figure of a public series.  Rows not re-reviewed (cobalt,
+# osmium, the bulk rows) keep the date above.  LBMA's daily prices are no
+# longer public, so the PGMs moved to Johnson Matthey's base prices and gold
+# and silver to Umicore's indications, both stated per row.
+_REF_PRICE_AUDIT_DATE = "2026-11-10"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -948,6 +956,9 @@ IN_SPACE_ANNUAL_DEMAND_KG: Dict[str, float] = {
     # The low end because all-electric buses carry far less and the table runs
     # conservative.  Deeper than GEO's row, which counts station-keeping on the
     # standing fleet; this counts one orbit raise per new satellite.
+    # An IDEALISED scenario (General_Research rc-393): the three sources are
+    # not shown to describe the same satellites, i.e. that every GTO launch
+    # carried one ~6 t chemical platform.  No cohort-level figure replaces it.
     "gto":            81_600.0,
     # Anchors for when these two are revisited, not a re-pin: Kornuta et al.
     # 2019 (Commercial Lunar Propellant Architecture) put near-term demand for
@@ -965,7 +976,14 @@ IN_SPACE_ANNUAL_DEMAND_KG: Dict[str, float] = {
     # that is tens of tonnes per opportunity against a base's consumables.
     # 60 t/yr is ~128 t per 2.14-year synodic period, roughly one crewed
     # mission's in-space propellant, and still well under cislunar's 100 t.
+    # A conservative one-mission scenario: NASA's notional scale is "100s
+    # metric tons per year for human Mars transportation" (Sanders &
+    # Kleinhenz 2024, NTRS 20240002713, p. 3), an unfunded vision, not a
+    # depot forecast (General_Research rc-391).
     "mars_orbit":     60_000.0,
+    # The same slide's "10's of metric tons of commodities per year for
+    # initial commercial usage" is the order-of-magnitude anchor; 20 t/yr
+    # stays judgement, since NASA forecasts no Mars-surface demand (rc-392).
     "mars_surface":   20_000.0,
 }
 
@@ -1135,8 +1153,17 @@ _INSPACE_PLANT_THROUGHPUT_KG_YR = 100.0     # Module 3 "In-space processing plan
 #   water       filtration and phase change only; already nearly a product
 #   metals      reduction + melting + forming.  Terrestrial electric-arc /
 #               direct-reduction steelmaking runs 4-5 kWh/kg; electrowinning
-#               iron is similar.  No carbothermic shortcut in space.
-#   silicates   sintering for shielding blocks or print feedstock
+#               iron is similar.  No carbothermic shortcut in space.  One
+#               comparator: hydrogen direct reduction, 3.48 kWh/kg of liquid
+#               steel, most of it the electrolyser (Vogl, Ahman & Nilsson
+#               2018, J. Clean. Prod. 203, 736).  Different feed and product,
+#               so 5.0 stays an engineering allowance (General_Research
+#               rc-366).
+#   silicates   sintering for shielding blocks or print feedstock.  1.0 is a
+#               LOW-ENERGY SCENARIO: microwave-sintering lunar simulants into
+#               construction material took 69-98 MJ/kg, 19-27 kWh/kg (Liu et
+#               al. 2025, J. Eur. Ceram. Soc. 45, 117047), 19-27x this.  Not
+#               the same route or product, so it is a comparator (rc-390).
 #   carbon      pyrolysis / compounding
 IN_SPACE_PROCESSING_KWH_PER_KG: Dict[str, float] = {
     "water":            0.5,
@@ -1152,11 +1179,24 @@ IN_SPACE_PROCESSING_KWH_PER_KG: Dict[str, float] = {
     # v1.11.0.  Order-of-magnitude process energies, as the rows above are:
     #   ammonia, CO2       fractional distillation of the ice, like water
     #   sulfur             melting and filtering
-    #   carbonates         calcination, ~0.5 kWh/kg of CaCO3 in a lime kiln
+    #   carbonates         calcination: ~0.5 kWh/kg of CaCO3 is the reaction's
+#                      theoretical minimum (3.18 GJ/t CaO, McMillan et al.
+#                      2016, NREL/TP-6A50-66763, p. 162), not a kiln's use,
+#                      which is 3.6-7.5 MJ/kg of lime in heat plus 10-45
+#                      kWh/t of electricity (Table N-1).  1.0 is an
+#                      engineering scenario (General_Research rc-395)
+#   phosphorus         elemental P4; the electric-furnace route from
+#                      phosphate rock uses up to 14 kWh/kg P4 (Matos et al.
+#                      2021, JRC EUR 30704 EN, p. 30).  8.0 is an engineering
+#                      scenario with no like-boundary source (rc-394)
     #   schreibersite      as the alloy it is, plus leaching out the P
     #   chromite/ilmenite  oxide reduction, as magnetite
     #   chromium           aluminothermic / electrolytic reduction
-    #   titanium           FFC-Cambridge electrolysis; Kroll runs 30-50
+    #   titanium           FFC-Cambridge electrolysis; Kroll runs 30-50.  FFC
+#                      measured 21.5 kWh/kg Ti (optimised porous TiO2) and
+#                      ~17 with an inert anode (Hu et al. 2018, JOM 70, 129,
+#                      pp. 133-135): extraction only, so 20 is an allowance
+#                      for the whole route (General_Research rc-389)
     "ammonia":          0.5,
     "carbon dioxide":   0.5,
     "sulfur":           1.0,
@@ -1450,11 +1490,15 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_unit":         None,
         "metals_dev_key":        None,
         "ref_price_usd_per_kg":  0.319,          # USGS No. 1 HMS composite, 2025
-        "ref_price_date":        _REF_PRICE_DATE,
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
         "notes":                 "Priced as refined steel scrap: No. 1 heavy melting "
                                  "composite, delivered, $319/t average for 2025 "
                                  "(USGS MCS 2026), within its $303-366/t monthly "
-                                 "range for Jan-Nov 2025.  "
+                                 "range for Jan-Nov 2025.  Re-reviewed 2026-11-10 "
+                                 "and kept: it is still the latest national annual "
+                                 "figure.  SteelBenchmarker's East-of-Mississippi "
+                                 "No. 1 HMS was $374/t on 2026-10-28, one region at "
+                                 "one date, so it is a comparator only.  "
                                  "Asteroid mining produces refined iron from "
                                  "nickel-iron alloy, NOT iron ore — so the "
                                  "relevant sale price is steel scrap / refined "
@@ -1470,10 +1514,12 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       None,           # LME, not on yfinance
         "yfinance_unit":         None,
         "metals_dev_key":        "nickel",
-        "ref_price_usd_per_kg":  18.806,         # World Bank, May 2026 average
-        "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "LME nickel.  Reference $18,806/t, the World Bank "
-                                 "Pink Sheet monthly average for May 2026.",
+        "ref_price_usd_per_kg":  15.436,         # World Bank, October 2026 average
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
+        "notes":                 "LME nickel.  Reference $15,436/t, the World Bank "
+                                 "Pink Sheet monthly average for October 2026 "
+                                 "(November 2026 edition); $18,806/t for May "
+                                 "until data contract 1.20.0.",
     },
     {   # ── Cobalt ───────────────────────────────────────────────────────
         "name":                  "cobalt",
@@ -1498,11 +1544,12 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       "HG=F",         # COMEX copper, USD / lb
         "yfinance_unit":         "lb",
         "metals_dev_key":        "copper",
-        "ref_price_usd_per_kg":  13.543,
-        "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "COMEX copper front-month.  Reference $13,543/t, "
+        "ref_price_usd_per_kg":  14.508,
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
+        "notes":                 "COMEX copper front-month.  Reference $14,508/t, "
                                  "the World Bank Pink Sheet monthly average for "
-                                 "May 2026.",
+                                 "October 2026 (November 2026 edition); $13,543/t "
+                                 "for May until data contract 1.20.0.",
     },
     {   # ── Gold ─────────────────────────────────────────────────────────
         "name":                  "gold",
@@ -1512,12 +1559,13 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       "GC=F",         # COMEX gold, USD / troy oz
         "yfinance_unit":         "troy_oz",
         "metals_dev_key":        "gold",
-        "ref_price_usd_per_kg":  145_506.0,      # $4,525.75/oz (LBMA, 2026-05-29)
-        "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "COMEX gold front-month.  Reference $145,506/kg "
-                                 "= $4,525.75/oz, the LBMA gold price on "
-                                 "2026-05-29; the World Bank Pink Sheet average "
-                                 "for May 2026, $4,587/oz, agrees within 1.4%.",
+        "ref_price_usd_per_kg":  130_335.9,      # $4,053.90/oz (Umicore, 2026-11-10)
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
+        "notes":                 "COMEX gold front-month.  Reference $130,335.9/kg "
+                                 "= $4,053.90/oz, Umicore's 10am indicative price "
+                                 "on 2026-11-10 (an indication, not a fixing; "
+                                 "LBMA's daily prices are no longer public).  Was "
+                                 "$4,525.75/oz, LBMA 2026-05-29.",
     },
     {   # ── Silver ───────────────────────────────────────────────────────
         "name":                  "silver",
@@ -1527,10 +1575,12 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       "SI=F",         # COMEX silver, USD / troy oz
         "yfinance_unit":         "troy_oz",
         "metals_dev_key":        "silver",
-        "ref_price_usd_per_kg":  2_436.5,
-        "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "COMEX silver front-month.  Reference $2,436.5/kg "
-                                 "= $75.78/oz, the LBMA silver price on 2026-05-29.",
+        "ref_price_usd_per_kg":  1_675.1,
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
+        "notes":                 "COMEX silver front-month.  Reference $1,675.1/kg "
+                                 "= $52.10/oz, Umicore's 10am indicative price on "
+                                 "2026-11-10 (an indication, not a fixing).  Was "
+                                 "$75.78/oz, LBMA 2026-05-29.",
     },
     {   # ── Platinum ─────────────────────────────────────────────────────
         "name":                  "platinum",
@@ -1540,10 +1590,11 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       "PL=F",         # NYMEX platinum, USD / troy oz
         "yfinance_unit":         "troy_oz",
         "metals_dev_key":        "platinum",
-        "ref_price_usd_per_kg":  61_472.2,       # $1,912/oz (2026-05-29 LBMA)
-        "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "NYMEX platinum front-month.  Reference $61,472/kg "
-                                 "= $1,912/oz, the LBMA platinum price on "
+        "ref_price_usd_per_kg":  50_219.5,       # $1,562/oz (JM base, 2026-11-10)
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
+        "notes":                 "NYMEX platinum front-month.  Reference $50,219.5/kg "
+                                 "= $1,562/oz, the Johnson Matthey base price, New "
+                                 "York, 2026-11-10.  Was $1,912/oz, LBMA "
                                  "2026-05-29.",
     },
     {   # ── Palladium ────────────────────────────────────────────────────
@@ -1554,11 +1605,12 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       "PA=F",         # NYMEX palladium, USD / troy oz
         "yfinance_unit":         "troy_oz",
         "metals_dev_key":        "palladium",
-        "ref_price_usd_per_kg":  43_853.6,       # $1,364/oz (LBMA, 2026-05-29)
-        "ref_price_date":        _REF_PRICE_DATE,
+        "ref_price_usd_per_kg":  33_629.7,       # $1,046/oz (JM base, 2026-11-10)
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
         "notes":                 "NYMEX palladium front-month.  Reference "
-                                 "$43,853.6/kg = $1,364/oz, the LBMA palladium "
-                                 "price on 2026-05-29.",
+                                 "$33,629.7/kg = $1,046/oz, the Johnson Matthey "
+                                 "base price, New York, 2026-11-10.  Was $1,364/oz, "
+                                 "LBMA 2026-05-29.",
     },
     {   # ── Rhodium ──────────────────────────────────────────────────────
         "name":                  "rhodium",
@@ -1568,10 +1620,11 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       None,           # no liquid futures market
         "yfinance_unit":         None,
         "metals_dev_key":        "rhodium",
-        "ref_price_usd_per_kg":  320_000.0,      # ~$9,950/oz (May 2026 LBMA)
-        "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "OTC quote (Johnson Matthey / LBMA).  Reference "
-                                 "$320k/kg = $9,950/oz (May 8 2026 spot).  "
+        "ref_price_usd_per_kg":  302_217.0,      # $9,400/oz (JM base, 2026-11-10)
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
+        "notes":                 "OTC quote.  Reference $302,217/kg = $9,400/oz, the "
+                                 "Johnson Matthey base price, New York, 2026-11-10 "
+                                 "(was $9,950/oz, May 8 2026 spot).  "
                                  "Trace PGM in M-type / iron-meteorite analogues.",
     },
     {   # ── Iridium ──────────────────────────────────────────────────────
@@ -1582,13 +1635,12 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       None,
         "yfinance_unit":         None,
         "metals_dev_key":        "iridium",
-        "ref_price_usd_per_kg":  257_206.0,      # $8,000/oz (JM, Q1 2026)
-        "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "OTC quote.  Reference $257,206/kg = $8,000/oz, "
-                                 "the Q1-2026 all-time high in the Johnson Matthey "
-                                 "PGM Market Report (May 2026), the latest JM base "
-                                 "price published before this row's date.  Trace "
-                                 "PGM in iron-meteorite analogues.",
+        "ref_price_usd_per_kg":  324_722.5,      # $10,100/oz (JM base, 2026-11-10)
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
+        "notes":                 "OTC quote.  Reference $324,722.5/kg = $10,100/oz, "
+                                 "the Johnson Matthey base price, New York, "
+                                 "2026-11-10 (was $8,000/oz, JM's Q1-2026 high).  "
+                                 "Trace PGM in iron-meteorite analogues.",
     },
     {   # ── Ruthenium ────────────────────────────────────────────────────
         "name":                  "ruthenium",
@@ -1598,12 +1650,11 @@ MINERAL_REFERENCE: List[dict] = [
         "yfinance_ticker":       None,
         "yfinance_unit":         None,
         "metals_dev_key":        "ruthenium",
-        "ref_price_usd_per_kg":  56_263.8,       # $1,750/oz (JM, Q1 2026)
-        "ref_price_date":        _REF_PRICE_DATE,
-        "notes":                 "OTC quote.  Reference $56,264/kg = $1,750/oz, the "
-                                 "Q1-2026 all-time high in the Johnson Matthey PGM "
-                                 "Market Report (May 2026), as for iridium; JM's "
-                                 "end-2025 record was $1,275/oz.  Trace PGM.",
+        "ref_price_usd_per_kg":  61_086.4,       # $1,900/oz (JM base, 2026-11-10)
+        "ref_price_date":        _REF_PRICE_AUDIT_DATE,
+        "notes":                 "OTC quote.  Reference $61,086.4/kg = $1,900/oz, the "
+                                 "Johnson Matthey base price, New York, 2026-11-10 "
+                                 "(was $1,750/oz, JM's Q1-2026 high).  Trace PGM.",
     },
     {   # ── Osmium ───────────────────────────────────────────────────────
         "name":                  "osmium",
@@ -1689,12 +1740,15 @@ MINERAL_REFERENCE: List[dict] = [
     _new_element("rhenium", "Re", 21.02, 1500.0,
                  "Rhenium metal pellets, 2024 ~$1,200-1,600/kg (USGS MCS "
                  "2025).  Highly siderophile, tracks osmium in meteoritic metal."),
-    _new_element("tungsten", "W", 19.25, 45.00,
-                 "APT at the start of 2025: Rotterdam $331/mtu (USGS MCS 2026, "
-                 "which says it rose to $675 during 2025, ~$85/kg W) = ~$42/kg "
-                 "of contained W (1 mtu = 7.93 kg W, MCS 2025).  MCS 2025 "
-                 "withholds the 2024 price.  The cell is the start-of-2025 "
-                 "level, matching the row date."),
+    dict(_new_element("tungsten", "W", 19.25, 353.10,
+                 "APT, CIF Rotterdam 88.5%, $2,500-3,100/mtu on 2026-11-05 "
+                 "(Shanghai Metals Market), midpoint $2,800 = $353.10/kg of "
+                 "contained W (1 mtu = 7.93 kg W, USGS MCS 2025), on the same "
+                 "APT-to-contained-W basis as before.  Until data contract "
+                 "1.20.0 it was $45, the start-of-2025 $331/mtu; USGS MCS 2026 "
+                 "has APT at $675 by the end of 2025.  Contained W in APT, not "
+                 "refined metal."),
+         ref_price_date="2026-11-05"),
     _new_element("molybdenum", "Mo", 10.28, 44.00,
                  "Molybdic oxide ~$20/lb of contained Mo in 2024 (USGS MCS "
                  "2025) = ~$44/kg."),

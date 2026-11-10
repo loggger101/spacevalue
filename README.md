@@ -145,7 +145,7 @@ way.
 
 Five metals have a traded future: gold, silver, platinum, palladium and copper.
 Everything else is priced from a reference row stamped with the date it was
-last reviewed (USGS, LME, LBMA, the World Bank, Johnson Matthey).
+last reviewed (USGS, LME, LBMA, the World Bank, Johnson Matthey, Umicore, SMM).
 
 Live quotes make a table that is right on the day and impossible to rebuild the
 day after. So the closes are recorded once and committed as a snapshot in
@@ -210,7 +210,7 @@ and on 3.11 they come out one bit different.
 ## Two version numbers
 
 - **The data contract**, `MineralValueConfig.pipeline_version`, currently
-  `1.19.0`. Stamped into every row. It moves when a change moves any number a
+  `1.20.0`. Stamped into every row. It moves when a change moves any number a
   build produces, and its history is economicspace's Stage 2 changelog up to
   1.16.0 and [CHANGELOG.md](CHANGELOG.md) from there.
 - **The package**, `spacevalue.__version__`. It moves for anything else.
