@@ -60,6 +60,32 @@ quote them with it.
   13:100026), and **Northrop Grumman 2024**, *DARPA LunA-10 Lunar Rail Network
   study*: lunar propellant demand forecasts recorded beside the cislunar and
   lunar-surface ceilings as anchors, not used as values (master v1.45.0).
+- **McDowell, *Space Activities in 2025***, Table 14(e) (34 GTO launches);
+  **Toson et al. 2016**, IAC-16-C4.6.9 (a ~6 t chemical GEO platform); and
+  **Byers 1989**, NASA TM-103174 (apogee propellant 40–50% of GTO mass): the
+  `gto` ceiling's arithmetic, an idealised scenario since the three are not
+  shown to describe one cohort (General_Research rc-393).
+- **Sanders, G. B. & Kleinhenz, J. E. 2024**, NASA JSC presentation, NTRS
+  20240002713, p. 3: "100s" of t/yr for human Mars transportation and "10's"
+  of t/yr of commodities for initial commercial use, a notional unfunded
+  scale beside the `mars_orbit` and `mars_surface` ceilings (rc-391, rc-392).
+
+## In-space processing energy
+
+Comparators beside `IN_SPACE_PROCESSING_KWH_PER_KG`, whose rows stay
+engineering allowances; none has the same feed and product boundary.
+
+- **Vogl, V., Åhman, M. & Nilsson, L. J. 2018**, J. Clean. Prod. 203, 736:
+  hydrogen direct reduction, 3.48 kWh/kg liquid steel (iron family, rc-366).
+- **Hu, D., Dolganov, A., et al. 2018**, JOM 70, 129: FFC-Cambridge, 21.5
+  kWh/kg Ti, ~17 with an inert anode (titanium, rc-389).
+- **Liu et al. 2025**, J. Eur. Ceram. Soc. 45, 117047: microwave sintering of
+  lunar simulants, 69–98 MJ/kg (silicates, rc-390).
+- **Matos, C. T., et al. 2021**, JRC EUR 30704 EN, p. 30: up to 14 kWh/kg of
+  elemental P4 (phosphorus, rc-394).
+- **McMillan, C., et al. 2016**, NREL/TP-6A50-66763, Appendix N: calcination's
+  theoretical minimum 3.18 GJ/t CaO (~0.5 kWh/kg CaCO3) and measured kiln use
+  (carbonates, rc-395).
 
 ## Mineral composition and densities
 

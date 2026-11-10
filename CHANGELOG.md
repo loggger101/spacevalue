@@ -75,6 +75,24 @@ code.
 
 ## Package releases
 
+### 0.5.1 - 2026-11-10
+
+Data contract 1.19.0, unchanged: comments, CITATIONS and this file only, and
+**no number moves**. Eight General_Research citation candidates. Each value
+stays, and the comment now says what kind of number it is and what it can be
+compared with.
+
+- **Processing energies.** Iron-family 5.0 kWh/kg sits beside hydrogen DRI's
+  3.48 (rc-366), and titanium's 20 beside FFC's measured 17–21.5 (rc-389).
+  Silicates' 1.0 is a low-energy scenario: sintering lunar simulants took
+  19–27 kWh/kg (rc-390). Phosphorus's 8.0 sits beside the P4 furnace's 14
+  (rc-394). Carbonates' ~0.5 kWh/kg is calcination's theoretical minimum, not
+  a kiln's measured use (rc-395).
+- **Demand ceilings.** `gto` is an idealised scenario, since its three sources
+  are not one cohort (rc-393). `mars_orbit` and `mars_surface` cite NASA's
+  notional "100s" and "10's" of t/yr as order-of-magnitude anchors, with the
+  values unchanged (rc-391, rc-392).
+
 ### 0.5.0 - 2026-11-05
 
 Data contract 1.19.0, unchanged: **no number moves**, and `tests/test_cargo_golden.py`

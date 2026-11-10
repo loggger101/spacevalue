@@ -948,6 +948,9 @@ IN_SPACE_ANNUAL_DEMAND_KG: Dict[str, float] = {
     # The low end because all-electric buses carry far less and the table runs
     # conservative.  Deeper than GEO's row, which counts station-keeping on the
     # standing fleet; this counts one orbit raise per new satellite.
+    # An IDEALISED scenario (General_Research rc-393): the three sources are
+    # not shown to describe the same satellites, i.e. that every GTO launch
+    # carried one ~6 t chemical platform.  No cohort-level figure replaces it.
     "gto":            81_600.0,
     # Anchors for when these two are revisited, not a re-pin: Kornuta et al.
     # 2019 (Commercial Lunar Propellant Architecture) put near-term demand for
@@ -965,7 +968,14 @@ IN_SPACE_ANNUAL_DEMAND_KG: Dict[str, float] = {
     # that is tens of tonnes per opportunity against a base's consumables.
     # 60 t/yr is ~128 t per 2.14-year synodic period, roughly one crewed
     # mission's in-space propellant, and still well under cislunar's 100 t.
+    # A conservative one-mission scenario: NASA's notional scale is "100s
+    # metric tons per year for human Mars transportation" (Sanders &
+    # Kleinhenz 2024, NTRS 20240002713, p. 3), an unfunded vision, not a
+    # depot forecast (General_Research rc-391).
     "mars_orbit":     60_000.0,
+    # The same slide's "10's of metric tons of commodities per year for
+    # initial commercial usage" is the order-of-magnitude anchor; 20 t/yr
+    # stays judgement, since NASA forecasts no Mars-surface demand (rc-392).
     "mars_surface":   20_000.0,
 }
 
@@ -1135,8 +1145,17 @@ _INSPACE_PLANT_THROUGHPUT_KG_YR = 100.0     # Module 3 "In-space processing plan
 #   water       filtration and phase change only; already nearly a product
 #   metals      reduction + melting + forming.  Terrestrial electric-arc /
 #               direct-reduction steelmaking runs 4-5 kWh/kg; electrowinning
-#               iron is similar.  No carbothermic shortcut in space.
-#   silicates   sintering for shielding blocks or print feedstock
+#               iron is similar.  No carbothermic shortcut in space.  One
+#               comparator: hydrogen direct reduction, 3.48 kWh/kg of liquid
+#               steel, most of it the electrolyser (Vogl, Ahman & Nilsson
+#               2018, J. Clean. Prod. 203, 736).  Different feed and product,
+#               so 5.0 stays an engineering allowance (General_Research
+#               rc-366).
+#   silicates   sintering for shielding blocks or print feedstock.  1.0 is a
+#               LOW-ENERGY SCENARIO: microwave-sintering lunar simulants into
+#               construction material took 69-98 MJ/kg, 19-27 kWh/kg (Liu et
+#               al. 2025, J. Eur. Ceram. Soc. 45, 117047), 19-27x this.  Not
+#               the same route or product, so it is a comparator (rc-390).
 #   carbon      pyrolysis / compounding
 IN_SPACE_PROCESSING_KWH_PER_KG: Dict[str, float] = {
     "water":            0.5,
@@ -1152,11 +1171,24 @@ IN_SPACE_PROCESSING_KWH_PER_KG: Dict[str, float] = {
     # v1.11.0.  Order-of-magnitude process energies, as the rows above are:
     #   ammonia, CO2       fractional distillation of the ice, like water
     #   sulfur             melting and filtering
-    #   carbonates         calcination, ~0.5 kWh/kg of CaCO3 in a lime kiln
+    #   carbonates         calcination: ~0.5 kWh/kg of CaCO3 is the reaction's
+#                      theoretical minimum (3.18 GJ/t CaO, McMillan et al.
+#                      2016, NREL/TP-6A50-66763, p. 162), not a kiln's use,
+#                      which is 3.6-7.5 MJ/kg of lime in heat plus 10-45
+#                      kWh/t of electricity (Table N-1).  1.0 is an
+#                      engineering scenario (General_Research rc-395)
+#   phosphorus         elemental P4; the electric-furnace route from
+#                      phosphate rock uses up to 14 kWh/kg P4 (Matos et al.
+#                      2021, JRC EUR 30704 EN, p. 30).  8.0 is an engineering
+#                      scenario with no like-boundary source (rc-394)
     #   schreibersite      as the alloy it is, plus leaching out the P
     #   chromite/ilmenite  oxide reduction, as magnetite
     #   chromium           aluminothermic / electrolytic reduction
-    #   titanium           FFC-Cambridge electrolysis; Kroll runs 30-50
+    #   titanium           FFC-Cambridge electrolysis; Kroll runs 30-50.  FFC
+#                      measured 21.5 kWh/kg Ti (optimised porous TiO2) and
+#                      ~17 with an inert anode (Hu et al. 2018, JOM 70, 129,
+#                      pp. 133-135): extraction only, so 20 is an allowance
+#                      for the whole route (General_Research rc-389)
     "ammonia":          0.5,
     "carbon dioxide":   0.5,
     "sulfur":           1.0,
