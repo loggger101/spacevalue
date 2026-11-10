@@ -521,7 +521,12 @@ IN_SPACE_UTILITY: Dict[str, float] = {
     "ilmenite":         0.40,
     # Silicates.  Usable as bulk radiation shielding and as 3-D-printing /
     # sintering feedstock, but a poor per-kg substitute for engineered
-    # structure, and available in quantity from the Moon as well.
+    # structure, and available in quantity from the Moon as well.  0.25 is a
+    # COMPOSITE of all of that, not a shielding ratio to water: as shielding
+    # alone, dry regolith comes within ~1.2x of water on NASA's GCR
+    # cell-transformation metric at 10-30 g/cm2 (NASA TP-3473, Fig. 15,
+    # digitised by General_Research, rc-296), so the 4:1 gap here is
+    # feedstock and market judgement, not shielding physics.
     "olivine":          0.25, "pyroxene":        0.25, "orthopyroxene": 0.25,
     "enstatite":        0.25, "plagioclase":     0.25, "spinel":        0.25,
     "phyllosilicates":  0.25, "oxides":          0.25, "silicates":     0.25,
@@ -934,6 +939,11 @@ _UNLIMITED_MARKET_KG = 1.0e15
 # outpost at full launch-cost-avoided.  A base that imports 20 t/yr does not
 # pay the same price for the 400th tonne as for the first.
 IN_SPACE_ANNUAL_DEMAND_KG: Dict[str, float] = {
+    # Judgement: a few Starship-class departures' worth a year.  For scale,
+    # NASA's DSEV Mars concept flies 39 tankers of 90 t per mission and four
+    # departures in 2028-2037, 1,404 t/yr annualised (Howard 2021, NTRS
+    # 20210021084, pp. 4 and 13), 2.8x this: one architecture's modelled
+    # capacity, not a market (General_Research rc-381).
     "leo":           500_000.0,
     # v1.9.0.  The only row here anchored on hardware that EXISTS: active
     # geostationary satellites at roughly 70 kg/yr of station-keeping
@@ -944,7 +954,11 @@ IN_SPACE_ANNUAL_DEMAND_KG: Dict[str, float] = {
     # table and the one most likely to saturate, which is the point of having
     # it: `earth_surface` is the destination where saturation is numerically
     # inert and 100% of rows run to the fleet ceiling, and nothing anchored
-    # the other end.
+    # the other end.  The count depends on catalog and rule, and 613 is kept
+    # as dated: in Nov 2026 CelesTrak's active payloads whose whole orbit lies
+    # within GEO +/-300 km number 585 (602 by mean altitude), and GCAT's
+    # current catalogue gives 524 by the same envelope (General_Research
+    # rc-290, R365-R367).  No rule is chosen yet, so neither replaces it.
     "geo":            44_600.0,
     # v1.16.0.  Anchored on what is LAUNCHED into GTO rather than on what sits
     # there, because nothing stays: 34 launches to GTO in 2025 (McDowell,
