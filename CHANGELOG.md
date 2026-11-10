@@ -111,6 +111,21 @@ code.
 
 ## Package releases
 
+### 0.6.1 - 2026-11-10
+
+Data contract 1.20.0, unchanged: comments and this file only, and **no number
+moves**. Three General_Research judgement candidates. Each value stays, and
+its comment now names the comparator that questions it.
+
+- **`geo` 44,600 kg/yr** (rc-290): the 613-payload count stays as dated
+  (GCAT, Jan 2026). In Nov 2026 the count is 585 or 602 in CelesTrak, by rule,
+  and 524 in GCAT, so no catalog-and-rule pair is chosen yet.
+- **`leo` 500,000 kg/yr** (rc-381): NASA's DSEV Mars concept annualises to
+  1,404 t/yr, one architecture's modelled capacity, not a market.
+- **Silicate utility 0.25** (rc-296): a composite of shielding, feedstock and
+  market judgement. As shielding alone, regolith is within ~1.2x of water
+  (NASA TP-3473 Fig. 15), so the 4:1 gap is not shielding physics.
+
 ### 0.6.0 - 2026-11-10
 
 Data contract **1.20.0**, above: the static prices are refreshed, and
