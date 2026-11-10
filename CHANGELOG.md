@@ -10,6 +10,42 @@ new contract is not evidence that a number moved.
 
 ## Data contracts
 
+### 1.20.0 - 2026-11-10
+
+**The stale static prices are re-reviewed on one date** (General_Research rc-302
+to rc-308, rc-313, rc-324, rc-325). Each row now uses the latest figure of a
+public series, dated by the new `_REF_PRICE_AUDIT_DATE`, 2026-11-10. Cobalt,
+osmium and the bulk rows were not re-reviewed and keep 2026-05-29.
+
+| row | was $/kg | now $/kg | source now |
+|---|---:|---:|---|
+| nickel | 18.806 | 15.436 | World Bank Pink Sheet, Oct 2026 average |
+| copper | 13.543 | 14.508 | World Bank Pink Sheet, Oct 2026 average |
+| gold | 145,506 | 130,335.9 | Umicore 10am indication, $4,053.90/oz |
+| silver | 2,436.5 | 1,675.1 | Umicore 10am indication, $52.10/oz |
+| platinum | 61,472.2 | 50,219.5 | Johnson Matthey base, $1,562/oz |
+| palladium | 43,853.6 | 33,629.7 | Johnson Matthey base, $1,046/oz |
+| rhodium | 320,000 | 302,217 | Johnson Matthey base, $9,400/oz |
+| iridium | 257,206 | 324,722.5 | Johnson Matthey base, $10,100/oz |
+| ruthenium | 56,263.8 | 61,086.4 | Johnson Matthey base, $1,900/oz |
+| tungsten | 45 | 353.10 | SMM APT, Rotterdam, 2026-11-05, midpoint $2,800/mtu, as contained W |
+| iron | 0.319 | 0.319 | kept: USGS 2025 annual is still the latest national figure |
+
+Johnson Matthey and Umicore figures are for 2026-11-10 (Johnson Matthey's in New
+York). Gold, silver, platinum and palladium were LBMA prices, but LBMA's daily
+prices are no longer public. Umicore's figures are indications, not fixings.
+Tungsten keeps its old method, APT per contained kilogram of W, which is not a
+refined-metal price.
+
+**In the recorded build, only rows without a quote move.** The
+`tests/data/prices-2026-10-07/` fixtures are re-recorded. Gold, silver,
+platinum, palladium and copper keep their 2026-09-29 closes, so only their
+`ref_price_usd_per_kg` column moved. Iridium, rhodium, ruthenium, nickel and
+tungsten are priced off the reference column, so their prices moved at every
+destination. Iridium rose 26%, ruthenium 9%, rhodium fell 6% and nickel 18%. On
+Earth, tungsten went from $45 to $353.10. Rows priced by their yields did not
+move.
+
 ### 1.19.0 - 2026-11-04
 
 **One in-space demand class is one market** (rc-261). No price, ceiling or demand
@@ -75,12 +111,12 @@ code.
 
 ## Package releases
 
-### 0.5.1 - 2026-11-10
+### 0.6.0 - 2026-11-10
 
-Data contract 1.19.0, unchanged: comments, CITATIONS and this file only, and
-**no number moves**. Eight General_Research citation candidates. Each value
-stays, and the comment now says what kind of number it is and what it can be
-compared with.
+Data contract **1.20.0**, above: the static prices are refreshed, and
+economicspace sees none of this until it repins. The release also cites sources
+for eight General_Research citation candidates. Those values stay, and each
+comment now says what kind of number it is and what it can be compared with.
 
 - **Processing energies.** Iron-family 5.0 kWh/kg sits beside hydrogen DRI's
   3.48 (rc-366), and titanium's 20 beside FFC's measured 17–21.5 (rc-389).

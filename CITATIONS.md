@@ -33,13 +33,23 @@ where the full texts or their key tables are kept.
   average unit value 2025e) and iron's world pig-iron production
   (General_Research rc-144, rc-154).
 - **World Bank, *Commodity Markets (Pink Sheet)* monthly prices**: the nickel
-  and copper reference prices, May 2026 averages (mineral_value 1.13.0).
-- **LBMA precious-metal prices**: the silver and platinum reference prices,
-  the fixings on 2026-05-29 (mineral_value 1.13.0).
-- **Johnson Matthey, *PGM Market Report* (May 2026)**: the iridium and
-  ruthenium reference prices, its Q1-2026 base prices (mineral_value 1.13.0).
-  JM's terms reserve its price data, so the row quotes the figure and the
-  report, and this repository carries no copy.
+  and copper reference prices, October 2026 averages from the November 2026
+  edition (data contract 1.20.0; May 2026 averages from mineral_value 1.13.0).
+- **Johnson Matthey base prices**, New York, 2026-11-10: the platinum,
+  palladium, rhodium, iridium and ruthenium reference prices (data contract
+  1.20.0; iridium and ruthenium were from JM's *PGM Market Report*, May 2026).
+  JM's terms reserve its price data, so each row quotes the figure and its
+  date, and this repository carries no copy.
+- **Umicore Precious Metals Management, 10am indicative prices**, 2026-11-10:
+  the gold and silver reference prices (data contract 1.20.0). These are
+  indications, not fixings.
+- **LBMA precious-metal prices**: the gold, silver, platinum and palladium
+  reference prices until data contract 1.20.0 (the 2026-05-29 prices). LBMA no
+  longer publishes its daily prices openly.
+- **Shanghai Metals Market (SMM)**, tungsten APT, CIF Rotterdam, 2026-11-05:
+  the tungsten reference price as contained W (data contract 1.20.0).
+- **SteelBenchmarker**, price history, 2026-10-28: an East-of-Mississippi No. 1
+  HMS comparator beside the iron row. The value is not taken from it.
 
 The **quote snapshots** in `spacevalue/quotes/` are Yahoo Finance closes of
 COMEX and NYMEX front-month futures (GC=F, SI=F, PL=F, PA=F, HG=F), recorded
