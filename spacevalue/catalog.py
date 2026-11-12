@@ -117,10 +117,10 @@ class MineralValueConfig:
     #                     it is the only destination that discounts the
     #                     METALS rather than the volatiles.
     #   "cislunar"      - sold at a lunar-vicinity (NRHO) depot, worth the
-    #                     larger launch cost avoided ($7,236/kg, derived).
+    #                     larger launch cost avoided ($7,237/kg, derived).
     #                     Also the CHEAPEST of the orbital options to reach
     #                     from an asteroid; see Module 4's return-Δv model.
-    #   "lunar_surface", sold at a Moon base.  $48,226/kg: nearest
+    #   "lunar_surface", sold at a Moon base.  $48,227/kg: nearest
     #                     destination, but airless, so all 6,100 m/s from LEO
     #                     is propulsive, and the tug and lander that do it
     #                     are thrown away (72% of the price is that hardware).
@@ -129,7 +129,7 @@ class MineralValueConfig:
     #                     no entry-survival fraction and, crucially, competes
     #                     with EARTH freight rather than with the Martian
     #                     crust; see IN_SPACE_UTILITY_BY_DESTINATION.
-    #   "mars_surface"  - sold at a Mars base.  $186,306/kg: the atmosphere
+    #   "mars_surface"  - sold at a Mars base.  $186,307/kg: the atmosphere
     #                     brakes most of the arrival, but the tug, aeroshell and
     #                     lander are all expended (85% of the price).
     #
@@ -178,7 +178,7 @@ class MineralValueConfig:
     # What each contract changed is CHANGELOG.md, not this comment: the
     # dashboard economicspace builds scrapes a field's comment block as its
     # help, and a changelog here was once 267 lines of it.
-    pipeline_version: str = "1.20.0"
+    pipeline_version: str = "1.21.0"
 
     # ─── DISPLAY ─────────────────────────────────────────────────────────────
     preview_rows:      int = 20   # rows per table in the CLI preview
@@ -626,7 +626,7 @@ IN_SPACE_UTILITY_DEFAULT = 0.0
 #
 # So the correction runs mostly DOWNWARD, and hardest at the destination that
 # is furthest away, which inverts the naive reading of the price table above.
-# Mars has the dearest freight ($186,306/kg) AND the poorest market for bulk
+# Mars has the dearest freight ($186,307/kg) AND the poorest market for bulk
 # asteroid material, because a settlement with an atmosphere and a crust makes
 # its own water, carbon and rock.  Do not "fix" that by raising these back up:
 # the high delivered cost is what Earth would pay, and the low utility is the
