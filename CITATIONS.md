@@ -96,6 +96,12 @@ engineering allowances; none has the same feed and product boundary.
 - **McMillan, C., et al. 2016**, NREL/TP-6A50-66763, Appendix N: calcination's
   theoretical minimum 3.18 GJ/t CaO (~0.5 kWh/kg CaCO3) and measured kiln use
   (carbonates, rc-395).
+- **Comparators named in 0.6.2's comments** (General_Research rc-434 to
+  rc-453): Paz 2023, NTRS 20230005189 (water's boundary); NASA-CR-171982
+  (ilmenite reduction to O2); Bleiwas, USGS OFR 2011-1253, Tables 19 and 35
+  (chromium electrolysis, phosphate-rock grinding); Li et al. 2014, J. Air
+  Waste Manag. Assoc. 64, 95 (sulfur distillation); Gull, Feng & Pasek
+  2022, Life 12, 1591 (schreibersite corrosion).
 
 ## Mineral composition and densities
 
@@ -121,6 +127,19 @@ Cited in code comments beside a value they explain; none reaches a value.
   <https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html>: the CO2 and
   N2 fractions and surface pressure behind `mars_surface`'s utility comments in
   `spacevalue/catalog.py` (General_Research rc-165).
+- **Comparators beside `IN_SPACE_UTILITY`, every factor an engineering
+  scenario** (rc-424 to rc-483): Roberts et al. 2023 (NASA in-space metals
+  TMP) and NASA's ISAM State of Play 2026, p. 266; JPL Pub 90-4 and NASA
+  TM-89876 (ammonia arcjets); ICES-2026-238 (habitat nitrogen); NASA
+  TM-100113 (resistojet fluids); ICES-2019-077 (Sabatier); NASA CR-4229 and
+  NTRS 20160006646 (phosphorus); ICES-2026-601 (sulfur as a catalyst
+  poison); Lewis, NASA SP-509, and Lewis's NIAC report NNX15AL85G;
+  Moses & Bushnell, NASA/TM-2016-219182; Grugel, NASA/TM-2008-215250.
+- **Beside the demand shares and prices**: Kornuta et al. 2019 and LunA-10
+  (rc-432); USGS MCS 2025 amorphous graphite and Platts N330 carbon black
+  (rc-508); Cabri, Harris & Weiser 1996 (native PGM, rc-512); Kutyrev et
+  al. 2023, Lithosphere 2023(1):126 (awaruite, rc-513); IMF WP 2024/077 and
+  Banque de France Eco Notepad 419 (elasticity, rc-507).
 
 ## Software
 

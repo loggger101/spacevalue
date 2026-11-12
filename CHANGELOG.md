@@ -111,6 +111,34 @@ code.
 
 ## Package releases
 
+### 0.6.2 - 2026-11-12
+
+Data contract 1.20.0, unchanged: comments, one `cargo.py` docstring and this
+file only, and **no number moves**. `catalog.py` parses to an identical AST,
+and `cargo.py` differs only in that docstring. Thirty-three General_Research
+citation candidates. Each asked for the basis of a judgement value. None found
+a like-for-like source, so each comment now says the value is a scenario and
+names the nearest comparator.
+
+- **In-space utility** (rc-424 to rc-431, rc-447, rc-450, rc-454, rc-472,
+  rc-473, rc-483): structural metals beside NASA's in-space metals maturity
+  and ESA MELT; the volatiles and chemicals beside arcjet, habitat-nitrogen,
+  Sabatier and CELSS figures; the detailed phases called inherited proxies.
+- **Demand shares** (rc-432): no source splits an import budget by class.
+- **Processing energy** (rc-434, rc-437 to rc-443, rc-452, rc-453): each row
+  an engineering scenario per kg of raw feed, beside its nearest comparator.
+- **Energy cost** (rc-482): the 15 years assume full output; cost scales as
+  1/availability.
+- **Reference rows** (rc-508 to rc-513): carbon, organics, spinel,
+  phyllosilicates and oxides prices are scenario anchors; cohenite is valued
+  as Fe and Ni only; the native-PGM and awaruite yields are scenarios.
+- **`saturation_price_multiplier`** (rc-507): ε is the caller's scenario; no
+  PGM demand elasticity is measured.
+
+Not here: rc-455 and rc-456 change the published `ref_price_source` label,
+which moves the data contract; rc-433 is a value and rc-484 a new routing
+method.
+
 ### 0.6.1 - 2026-11-10
 
 Data contract 1.20.0, unchanged: comments and this file only, and **no number

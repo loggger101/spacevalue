@@ -503,6 +503,13 @@ IN_SPACE_UTILITY: Dict[str, float] = {
     # Structural metals.  Discounted for the in-space manufacturing gap:
     # raw Fe-Ni is not a pressure vessel, and the melting / forming plant that
     # turns it into one is not costed anywhere in this pipeline.
+    # 0.70 is a scenario informed by manufacturing maturity, not a measured
+    # substitution fraction.  NASA's in-space metals TMP closed with no
+    # in-space mechanical or volumetric testing (Roberts et al. 2023), and
+    # ESA's MELT, the first metal printer on ISS (2024), compared four prints
+    # with Earth copies (NASA ISAM State of Play 2026, p. 266).  Neither
+    # gives a delivered product, throughput or demand (General_Research
+    # rc-424).
     "iron":             0.70,
     "nickel":           0.70,
     "cobalt":           0.70,
@@ -514,6 +521,11 @@ IN_SPACE_UTILITY: Dict[str, float] = {
     # v1.11.0.  Chromium and titanium are structural alloying metals, and
     # take the structural discount; their ores, like magnetite, need reducing
     # first.  Schreibersite is a metal phosphide and sits with the alloy.
+    # Both are inherited scenarios.  Schreibersite takes nickel-iron's
+    # factors with no phosphide-specific product or mass balance (rc-483).
+    # The oxide ores' 0.40 and their overrides have no ore-to-product yield
+    # behind them; NASA's ilmenite reduction (NASA-CR-171982) is an oxygen
+    # product, a process comparator and not a utility (rc-450).
     "chromium":         0.70,
     "titanium":         0.70,
     "schreibersite":    0.70,
@@ -530,7 +542,13 @@ IN_SPACE_UTILITY: Dict[str, float] = {
     "olivine":          0.25, "pyroxene":        0.25, "orthopyroxene": 0.25,
     "enstatite":        0.25, "plagioclase":     0.25, "spinel":        0.25,
     "phyllosilicates":  0.25, "oxides":          0.25, "silicates":     0.25,
-    # Carbon and organics: composites, plastics, agriculture feedstock.
+    # Carbon and organics: composites, plastics, agriculture feedstock.  Both
+    # are engineering scenarios.  The one cited route is Mars-made plastic
+    # from CO2 and H2 (Moses & Bushnell, NASA/TM-2016-219182, sec. 3.1.2),
+    # not asteroid carbon (rc-430).  C1 chondrites carry up to 6% organics
+    # (Lewis, NASA SP-509) and methane is a resistojet fluid (Morren et al.,
+    # NASA TM-100113), but neither sizes polymer or agriculture demand
+    # (rc-429).
     "carbon":           0.40,
     "organics":         0.20,
     # v1.11.0, the other volatiles and chemicals.  Ammonia is nitrogen, the
@@ -538,6 +556,18 @@ IN_SPACE_UTILITY: Dict[str, float] = {
     # propellant; CO2 is the carbon feed for Sabatier methane.  Both are
     # discounted off water's 1.00 because neither is the depot's main trade.
     # Sulfur and phosphorus are process chemicals and fertiliser, by the kg.
+    # All six factors here are engineering scenarios; the sources give uses,
+    # not a fraction of launch cost avoided.  Ammonia: a 30 kW arcjet reaches
+    # <800 s at ~30% efficiency (JPL Pub 90-4, p. 41), and a crew loses
+    # 9-4,620 kg of nitrogen a mission, by destination (ICES-2026-238, Table
+    # 4) (rc-425).  CO2: a resistojet fluid (NASA TM-100113) and the Sabatier
+    # feed (ICES-2019-077) (rc-426).  Carbonates: Lewis's NIAC propellant
+    # study needs 352 t of CO2 per 1,000 t of propellant (NNX15AL85G, p. 30)
+    # but does not take it from carbonates (rc-431).  Phosphorus: CELSS
+    # diets need ~0.8-0.9 g a person-day (NASA CR-4229, p. 60), and plant
+    # nutrient recovery targets 60% (NTRS 20160006646) (rc-427).  Sulfur:
+    # ISS's Sabatier record has it as a catalyst poison (ICES-2026-601,
+    # p. 4), and no source gives a demand for it (rc-428).
     "ammonia":          0.60,
     "carbon dioxide":   0.30,
     "carbonates":       0.25,   # the CO2 source, and otherwise shielding rock
@@ -552,6 +582,12 @@ IN_SPACE_UTILITY: Dict[str, float] = {
     # phosphorus's 0.10 they would be worth LESS than the residual rock they
     # are carved out of, so naming a phosphate would make a body worse for a
     # reason with no physics in it: caught on the first priced table.
+    # Each is an inherited proxy, not a phase-specific derivation: the Fe-Ni
+    # phases at nickel-iron's 0.70 (rc-472); the sulfides at troilite's
+    # 0.30, whose nearest source is lunar sulfur concrete made from
+    # recovered sulfur, not ore (Grugel, NASA/TM-2008-215250) (rc-447);
+    # oldhamite and the phosphates at carbonates' 0.25 (rc-473); hibonite at
+    # spinel's, with no hibonite-specific use (rc-454).
     "kamacite":         0.70, "taenite":      0.70, "tetrataenite": 0.70,
     "cohenite":         0.70,
     "pyrrhotite":       0.30, "pentlandite":  0.30, "niningerite":  0.30,
@@ -654,6 +690,8 @@ IN_SPACE_UTILITY_BY_DESTINATION: Dict[str, Dict[str, float]] = {
         # surfaces leave them alone, and the reason is the one above: those
         # overrides are about there being no local ORE, this one is about
         # there being no local FACTORY.
+        # 0.15 is a scenario: an ISS printing demonstration (ESA MELT) does
+        # not establish a GEO factory or an asteroid-alloy chain (rc-424).
         "iron":             0.15, "nickel":       0.15, "cobalt":     0.15,
         "copper":           0.15, "nickel-iron":  0.15, "awaruite":   0.15,
         "magnetite":        0.05, "troilite":     0.05,
@@ -1033,6 +1071,11 @@ del _NO_CEILING
 # propellant-and-construction outpost actually consumes by mass: propellant
 # dominates, structure is next, shielding is bulky but occasional, and
 # catalysts are measured in kilograms.
+# No source apportions an import budget by class.  Kornuta et al. (2019) give
+# lunar propellant demand of 450-1,640 t/yr, and LunA-10 500-2,500 t/yr of
+# propellant transport plus 100 t of one-time construction (Northrop Grumman
+# 2024, p. 5); neither splits the rest.  The shares are allocation scenarios
+# (General_Research rc-432).
 _DEMAND_SHARE_BY_CLASS: Dict[str, float] = {
     "propellant":  0.55,   # water; refuelling is most of any depot's tonnage
     "structural":  0.25,   # metals: pressure vessels, trusses, wire, motors
@@ -1154,6 +1197,10 @@ def market_id(
 #            costs $800 / 131,490 = $0.0061/Wh ≈ $6.08/kWh, roughly 100×
 #            terrestrial industrial power, which is the whole reason in-space
 #            processing is not obviously free.
+#            The 15 years are at full rated output with no outage or
+#            degradation, a scenario: at an availability f the energy cost
+#            scales as 1/f, so f = 0.8 gives ~$7.60/kWh (General_Research
+#            rc-482).
 #
 #   PLANT    $300k/kg of deep-space hardware, at 100 kg/yr of throughput per
 #            kg of plant over a 15-year life ⇒ 1,500 kg processed per kg of
@@ -1179,6 +1226,12 @@ _INSPACE_PLANT_THROUGHPUT_KG_YR = 100.0     # Module 3 "In-space processing plan
 #               al. 2025, J. Eur. Ceram. Soc. 45, 117047), 19-27x this.  Not
 #               the same route or product, so it is a comparator (rc-390).
 #   carbon      pyrolysis / compounding
+#   carbon, organics  2.0 each, an engineering scenario with no source;
+#               organics has no stated route (rc-437)
+#   water       0.5 is purification only, freeze distillation and
+#               filtration, not extraction or electrolysis.  Paz 2023 (NTRS
+#               20230005189) sets that boundary but gives no energy, so 0.5
+#               is an engineering scenario (rc-434)
 IN_SPACE_PROCESSING_KWH_PER_KG: Dict[str, float] = {
     "water":            0.5,
     "iron":             5.0,  "nickel":     5.0,  "cobalt": 5.0,  "copper": 5.0,
@@ -1211,6 +1264,19 @@ IN_SPACE_PROCESSING_KWH_PER_KG: Dict[str, float] = {
 #                      ~17 with an inert anode (Hu et al. 2018, JOM 70, 129,
 #                      pp. 133-135): extraction only, so 20 is an allowance
 #                      for the whole route (General_Research rc-389)
+    # Each value in this block and the v1.12.0 one is an engineering
+    # scenario per kg of raw feed, with no route calculation:
+    #   ammonia, CO2   the water analogy; nothing measures either (rc-439)
+    #   sulfur         Li et al. 2014 distil zinc-leach residue at 0.59
+    #                  kWh/kg residue, 1.24 per kg of sulfur: another feed
+    #                  and denominator (rc-442)
+    #   schreibersite  Gull, Feng & Pasek 2022 corrode it in water and
+    #                  report no energy (rc-443)
+    #   chromite, ilmenite  NASA-CR-171982 reduces ilmenite with ~51 MWh
+    #                  for 10 t of O2 from 662 t of mare feed, an oxygen
+    #                  product (rc-440)
+    #   chromium       18.5 kWh/kg Cr is electrolysis alone, after
+    #                  ferrochrome (USGS OFR 2011-1253, Table 19) (rc-441)
     "ammonia":          0.5,
     "carbon dioxide":   0.5,
     "sulfur":           1.0,
@@ -1225,6 +1291,13 @@ IN_SPACE_PROCESSING_KWH_PER_KG: Dict[str, float] = {
     # as troilite (roasting frees the sulfur, and the metal then pays its
     # own); the phosphates and hibonite as rock, by grinding (the P then pays
     # phosphorus's 8.0 when it is taken apart); perovskite as the Ti ores.
+    # Transfers, not derivations: one troilite rate across six sulfides
+    # (rc-438); perovskite at the Ti ores' 7.0 (rc-440); cohenite, a
+    # carbide, at nickel-iron's 5.0 with no carbon or product boundary, where
+    # Vogl's 3.48 kWh/kg is liquid steel (rc-452); the phosphates and
+    # hibonite at 1.0, against 0.01-0.03 kWh/kg for terrestrial phosphate
+    # rock grinding (USGS OFR 2011-1253, Table 35), which says nothing of
+    # hibonite (rc-453).
     "kamacite":         5.0, "taenite":      5.0, "tetrataenite": 5.0,
     "cohenite":         5.0,
     "pyrrhotite":       4.0, "pentlandite":  4.0, "niningerite":  4.0,
@@ -1906,6 +1979,8 @@ MINERAL_REFERENCE: List[dict] = [
                  "so priced by its yields at taenite's trace contents."),
     # (Fe0.97Ni0.03)3C: Fe 162.509, Ni 5.282, C 12.011 of 179.802.  The carbon
     # is not a yield: "carbon" is priced as a mineral, not an element.
+    # So it is valued as its Fe and Ni only, its ~6.7 wt% carbon left out: a
+    # scenario, not a cohenite netback (General_Research rc-511).
     _new_mineral("cohenite", "(Fe,Ni)3C", 7.40, {"iron": 0.904, "nickel": 0.029},
                  None,
                  "Iron carbide with ~3 wt% Ni, in iron meteorites (IAB, IIAB) "
@@ -1999,6 +2074,11 @@ MINERAL_REFERENCE: List[dict] = [
         # In terrestrial ophiolites (Josephine, Mojave) awaruite hosts
         # PGMs at 10-100× chondritic, used here as a PGM-enriched analog
         # for asteroid-mining targets that show specific spectral indicators.
+        # The PGM yields are a scenario, ~5x the nickel-iron baseline, and do
+        # not say whether the PGMs sit in the Ni3Fe host or in inclusions.
+        # Kutyrev et al. 2023 measured no significant PGE in Kamchatka
+        # awaruite (Galmoenan up to 3 ppm Pd), the PGMs sitting in separate
+        # inclusions (General_Research rc-513).
         "name":                  "awaruite",
         "kind":                  "mineral",
         "formula":               "Ni3Fe",
@@ -2029,6 +2109,9 @@ MINERAL_REFERENCE: List[dict] = [
         # Os / Ru / Rh).  Composition midpoint of placer-class native
         # platinum compositions; iridosmine end-members would be higher Ir/Os.
         # Documented in ureilites and rare iron-meteorite nuggets.
+        # The vector is a scenario with no stated population or averaging;
+        # placer grains vary by site (Cabri, Harris & Weiser 1996: 211 Liard
+        # River grains in four groups) (General_Research rc-512).
         "name":                  "native-pgm",
         "kind":                  "mineral",
         "formula":               "(Pt,Pd,Ir,Os,Ru,Rh)",
@@ -2103,6 +2186,9 @@ MINERAL_REFERENCE: List[dict] = [
                                  "as feldspar, whose marketable production "
                                  "averaged $110/t in 2025e (USGS MCS 2026).",
     },
+    # Spinel, phyllosilicates and generic oxides: no row cites a price, grade,
+    # date or delivery basis, and they are three different products.  Their
+    # $/kg are scenario anchors (General_Research rc-510).
     {   # ── Spinel ───────────────────────────────────────────────────────
         "name":                  "spinel",
         "kind":                  "mineral",
@@ -2149,6 +2235,11 @@ MINERAL_REFERENCE: List[dict] = [
         "ref_price_date":        _REF_PRICE_DATE,
         "notes":                 "Catch-all rock-forming silicate bulk.",
     },
+    # Carbon and organics are scenario prices.  Carbon's 0.20 names carbon
+    # black but no grade or quote; USGS's amorphous-graphite import value,
+    # $0.64/kg (MCS 2025, p. 83), and Platts' N330 carbon black, ~$1.83/kg
+    # ex-works US Gulf (May 2025), are other products (rc-508).  Organics'
+    # 0.50 names no product or market at all (rc-509).
     {   # ── Carbon (amorphous / graphitic) ───────────────────────────────
         "name":                  "carbon",
         "kind":                  "mineral",
