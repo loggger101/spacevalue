@@ -93,12 +93,12 @@ def test_the_witness_sells_one_allowance(cislunar):
     table, markets = cislunar
     sale = terms(markets, table, [("olivine", 10_000.0), ("pyroxene", 10_000.0)])
     value, unsold, surplus = cargo._capped_sale_value(sale, 1.0, 0.5)
-    assert value == pytest.approx(28_053_387, abs=1)
+    assert value == pytest.approx(28_054_272, abs=1)
     assert (unsold, surplus) == (0.0, 5_000.0)
     # The same sale with a market per name: the whole load at full price.
     old = [(kg, price, cap, name) for (kg, price, cap, _key), name
            in zip(sale, ("olivine", "pyroxene"))]
-    assert cargo._capped_sale_value(old, 1.0, 0.5)[0] == pytest.approx(32_061_014, abs=1)
+    assert cargo._capped_sale_value(old, 1.0, 0.5)[0] == pytest.approx(32_062_025, abs=1)
 
 
 @pytest.mark.parametrize("first", [0, 1])

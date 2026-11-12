@@ -72,10 +72,10 @@ cheapest LEO price a buyer can book, and adds the stages the chain throws away.
 | `leo` | 2,555 | the launch itself |
 | `gto` | 5,168 | 2,455 m/s |
 | `geo` | 8,462 | 4,291 m/s |
-| `cislunar` | 7,236 | 3,600 m/s to a lunar-vicinity depot (NRHO) |
-| `lunar_surface` | 48,226 | 6,100 m/s, all of it propulsive |
+| `cislunar` | 7,237 | 3,600 m/s to a lunar-vicinity depot (NRHO) |
+| `lunar_surface` | 48,227 | 6,100 m/s, all of it propulsive |
 | `mars_orbit` | 9,154 | 4,500 m/s to a 1-sol staging orbit |
-| `mars_surface` | 186,306 | 4,400 m/s plus aeroentry |
+| `mars_surface` | 186,307 | 4,400 m/s plus aeroentry |
 
 The two surface figures are lower bounds. They price industrial-scale
 transport with no development cost and no cadence limit. Real lunar delivery
@@ -210,7 +210,7 @@ and on 3.11 they come out one bit different.
 ## Two version numbers
 
 - **The data contract**, `MineralValueConfig.pipeline_version`, currently
-  `1.20.0`. Stamped into every row. It moves when a change moves any number a
+  `1.21.0`. Stamped into every row. It moves when a change moves any number a
   build produces, and its history is economicspace's Stage 2 changelog up to
   1.16.0 and [CHANGELOG.md](CHANGELOG.md) from there.
 - **The package**, `spacevalue.__version__`. It moves for anything else.

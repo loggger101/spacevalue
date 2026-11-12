@@ -10,6 +10,30 @@ new contract is not evidence that a number moved.
 
 ## Data contracts
 
+### 1.21.0 - 2026-11-12
+
+**spacecost v0.14.0 → v0.17.1, and the delivery chains move.** Nothing in this
+repository's tables changed. The delivery and downleg prices come from spacecost,
+and two of its 0.16.0 changes reach them:
+
+- **LOX $0.20 → $0.37/kg** (spacecost rc-185). The tug's fuel costs more, so
+  the delivered price of every in-space destination rises: cislunar $7,236.54
+  to $7,237 (rounded), lunar surface to $48,227, Mars surface to $186,307. LEO,
+  GTO, GEO and Mars orbit round the same.
+- **A recovery is one charge per batch** (spacecost rc-254), so every downleg
+  falls: 0.02% to GTO, 0.16% LEO, 0.57% cislunar, 1.1% Mars orbit, 1.7% GEO,
+  2.7% lunar surface and 4.5% Mars surface.
+
+In the `tests/data/prices-2026-10-07/` fixtures, which are re-recorded, three
+columns move: `price_usd_per_kg`, `price_before_processing_usd_per_kg` and
+`downleg_cost_usd_per_kg`. Earth surface does not move. Rows used in space
+rise by a median of 5e-6 (Mars surface) to 7e-4 (LEO) of their price. Rows
+shipped home rise by as much as the downleg fell: up to 12% at GEO, lunar and
+Mars surface, where the downleg is large beside the price. At Mars orbit water
+and palladium swap places in the table's price order.
+The cislunar witness in `test_cargo_market_class.py` follows the shielding
+prices: $28,053,387 → $28,054,272 pooled, $32,061,014 → $32,062,025 per name.
+
 ### 1.20.0 - 2026-11-10
 
 **The stale static prices are re-reviewed on one date** (General_Research rc-302
@@ -110,6 +134,14 @@ come from and what a table's date means:
 code.
 
 ## Package releases
+
+### 0.7.0 - 2026-11-12
+
+Data contract **1.21.0**, above: spacecost is pinned at `v0.17.1`, was
+`v0.14.0`, and its delivery chains move every in-space price and every downleg.
+The fixtures, the README's delivered prices and the cargo witness are
+re-recorded with it. No code here changed. economicspace sees this once it
+repins this tag and a `prices-*` release built from it.
 
 ### 0.6.2 - 2026-11-12
 
