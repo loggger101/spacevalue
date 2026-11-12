@@ -1007,8 +1007,10 @@ def saturation_price_multiplier(
 
         P / P0 = (1 + Q_new / Q_market) ^ (−1/ε)
 
-    Constant-elasticity demand.  Precious-metal demand is inelastic, 
-    ε ≈ 0.5, so doubling world supply quarters the price, which is why
+    Constant-elasticity demand, with ε the caller's scenario: no PGM demand
+    elasticity is measured.  The IMF's mineral estimates leave PGMs out, and
+    Banque de France's ~0.5 is mine SUPPLY response (General_Research
+    rc-507).  At ε = 0.5 doubling world supply quarters the price, which is why
     "return a tonne of platinum" was never the business it looks like on a
     spot-price spreadsheet.  Returns 1.0 when the market swallows the
     quantity without noticing.
