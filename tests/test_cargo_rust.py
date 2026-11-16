@@ -37,7 +37,7 @@ try:
     import spacevalue_cargo_rs as rs
 except ImportError:  # pragma: no cover - exercised only without the build
     rs = None
-    if os.environ.get("SPACEVALUE_REQUIRE_RUST") == "1":
+    if os.environ.get("SPACEVALUE_REQUIRE_RUST", "") not in ("", "0"):
         raise
 
 pytestmark = pytest.mark.skipif(rs is None, reason="spacevalue_cargo_rs not built")
@@ -153,6 +153,16 @@ def _same(a, b):
     return _expand(enc.enc(a), enc.blobs) == _expand(enc.enc(b), enc.blobs)
 
 
+def _fast_share_since(c0):
+    """(fast, slow) since the counts `c0`; fails if Rust answered none, or
+    fewer calls than it handed back (a fuzz answered by the fallback would
+    only compare the Python with itself)."""
+    fast, slow = rs.counts()
+    fast, slow = fast - c0[0], slow - c0[1]
+    assert fast > 0 and fast > slow, ("fast", fast, "slow", slow)
+    return fast, slow
+
+
 def _call(f, *a, **kw):
     """The result, or the exception's type and text: the port must raise
     where the Python raises, and the same thing."""
@@ -164,6 +174,7 @@ def _call(f, *a, **kw):
 
 def test_rust_mix_matches_python_on_hostile_inputs():
     r = random.Random(20261115)
+    c0 = rs.counts()
     differ = []
     for i in range(60000):
         phases = _phases(r)
@@ -185,12 +196,12 @@ def test_rust_mix_matches_python_on_hostile_inputs():
         if not (_same(want, got) and _same(kw_py, kw_rs)):
             differ.append((i, args, kw))
     assert not differ, "%d differ; first %r" % (len(differ), differ[0])
-    fast, slow = rs.counts()
-    assert fast > slow
+    _fast_share_since(c0)
 
 
 def test_rust_hold_refining_matches_python():
     r = random.Random(7)
+    c0 = rs.counts()
     differ = []
     for i in range(30000):
         phases = _phases(r)
@@ -207,10 +218,12 @@ def test_rust_hold_refining_matches_python():
         if not _same(want, got):
             differ.append((i, args))
     assert not differ, "%d differ; first %r" % (len(differ), differ[0])
+    _fast_share_since(c0)
 
 
 def test_rust_capped_sale_matches_python():
     r = random.Random(11)
+    c0 = rs.counts()
     differ = []
     for i in range(30000):
         terms = []
@@ -225,3 +238,4 @@ def test_rust_capped_sale_matches_python():
         if not _same(want, got):
             differ.append((i, args))
     assert not differ, "%d differ; first %r" % (len(differ), differ[0])
+    _fast_share_since(c0)
