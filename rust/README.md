@@ -1,8 +1,11 @@
 # rust/: the cargo knapsack in Rust (prototype)
 
-**Status:** a prototype on branch `rust-cargo-prototype`. Not merged, not
-released, and nothing in `spacevalue` imports it. The Python in
-`spacevalue/cargo.py` stays the reference and the default.
+**Status:** shipped with spacevalue 0.7.1, tested by CI's `rust` job, and
+still optional: nothing in `spacevalue` imports it. The Python in
+`spacevalue/cargo.py` stays the reference and the default. Install the
+binding from the tag (it needs a Rust toolchain):
+
+    pip install "spacevalue_cargo_rs @ git+https://github.com/loggger101/spacevalue@v0.7.1#subdirectory=rust/cargo_py"
 
 ## What it is
 
@@ -74,12 +77,11 @@ cannot pass by not running. The planted build, which must fail all six:
 
     python -m maturin build --release --features planted_knapsack_defect -o dist-plant
 
-## Before this could merge (not done)
+## Open
 
-- CI: build the binding on the three hosts in `tests.yml` and run
-  `test_cargo_rust.py` with `SPACEVALUE_REQUIRE_RUST=1`; build and run the
-  planted copy, expecting failure. Without that, a knapsack change that skips
-  the Rust copy only fails on a machine that happens to have it built.
+- (Done in 0.7.1.) CI: the `rust` job in `tests.yml` builds the binding on
+  the three hosts and runs `test_cargo_rust.py` with
+  `SPACEVALUE_REQUIRE_RUST=1`, after the planted copy has failed all six.
 - Decide how economicspace's `es_core` pins `cargo_core`: a git dependency at
   the same tag as the spacevalue pin, held together by a check, as check 7
   holds the Python pins.
