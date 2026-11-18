@@ -135,6 +135,25 @@ code.
 
 ## Package releases
 
+### 0.7.2 - 2026-11-18
+
+Data contract 1.21.0, unchanged, and **no number moves**: CITATIONS.md, one
+comment in `catalog.py` and `__version__`. `catalog.py` parses to the same AST.
+Applies General_Research rc-664, rc-787, rc-788, rc-796 and rc-800 to rc-803,
+which ask for the full reference behind sources the code already cites.
+
+- The grouped "Comparators beside `IN_SPACE_UTILITY`" paragraph becomes one
+  entry per source, with title, authors, report number, NTRS identifier, link
+  and the page each comment uses: Roberts et al. 2023 and the ISAM State of
+  Play 2026 (p. 266), Kim et al.'s TP-3473 (Fig. 15), Lewis 1992 and Morren et
+  al. 1987, the ammonia arcjet and habitat-nitrogen reports, Franco et al.
+  2019, Moses & Bushnell 2016, Lewis 2016, Wade 1989, Zeitlin et al. 2015,
+  Abney et al. 2026 and Grugel 2008. Each is scoped to the claim beside it.
+- Abney et al.'s sulfur-poison statement is on PDF p. 2, not p. 4 as the
+  sulfur comment said (rc-802).
+- The osmium production row's IPA/SFA factsheet (rc-664) and Howard 2021's
+  DSEV comparator beside the `leo` ceiling (rc-788) are listed.
+
 ### 0.7.1 - 2026-11-17
 
 Data contract 1.21.0, unchanged, and **no number moves**: nothing under

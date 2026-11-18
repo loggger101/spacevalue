@@ -567,7 +567,7 @@ IN_SPACE_UTILITY: Dict[str, float] = {
     # diets need ~0.8-0.9 g a person-day (NASA CR-4229, p. 60), and plant
     # nutrient recovery targets 60% (NTRS 20160006646) (rc-427).  Sulfur:
     # ISS's Sabatier record has it as a catalyst poison (ICES-2026-601,
-    # p. 4), and no source gives a demand for it (rc-428).
+    # PDF p. 2), and no source gives a demand for it (rc-428, rc-802).
     "ammonia":          0.60,
     "carbon dioxide":   0.30,
     "carbonates":       0.25,   # the CO2 source, and otherwise shielding rock
