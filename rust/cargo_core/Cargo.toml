@@ -1,0 +1,14 @@
+[package]
+name = "spacevalue_cargo_core"
+version = "0.1.0"
+edition = "2021"
+description = "PROTOTYPE: spacevalue.cargo's payload knapsack in Rust, bit-identical to the Python"
+license = "MIT"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+# Flips one ulp of every positive take: the gates must catch it.
+planted_knapsack_defect = []

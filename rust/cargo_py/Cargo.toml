@@ -1,0 +1,22 @@
+[package]
+name = "spacevalue_cargo_rs"
+version = "0.1.0"
+edition = "2021"
+description = "PROTOTYPE: optional Python binding of spacevalue_cargo_core"
+license = "MIT"
+publish = false
+
+[lib]
+name = "spacevalue_cargo_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "=0.26.0", features = ["extension-module"] }
+spacevalue_cargo_core = { path = "../cargo_core" }
+
+[features]
+planted_knapsack_defect = ["spacevalue_cargo_core/planted_knapsack_defect"]
+
+[profile.release]
+lto = true
+codegen-units = 1

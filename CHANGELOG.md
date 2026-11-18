@@ -135,6 +135,29 @@ code.
 
 ## Package releases
 
+### 0.7.1 - 2026-11-17
+
+Data contract 1.21.0, unchanged, and **no number moves**: nothing under
+`spacevalue/` changed except `__version__`. This adds `rust/`, a Rust copy of
+`cargo.py`'s knapsack (`optimal_payload_mix`, `_hold_refining`,
+`_capped_sale_value`) for economicspace's `es_core` to link, and an optional
+binding of it, `spacevalue_cargo_rs`. `spacevalue` never imports either.
+
+- `rust/cargo_core` (plain Rust) is the port; `rust/cargo_py` (PyO3) binds
+  it. The binding is a separate package, installed from this tag with
+  `pip install "spacevalue_cargo_rs @ git+https://github.com/loggger101/spacevalue@v0.7.1#subdirectory=rust/cargo_py"`
+  (it needs a Rust toolchain). It is not a `spacevalue` extra, which would
+  make every install of the package need one.
+- `tests/test_cargo_rust.py` holds the binding to the Python bit for bit
+  (the golden replay, and fuzzed calls with exceptions compared); it skips
+  without the binding unless `SPACEVALUE_REQUIRE_RUST=1`.
+- CI's new `rust` job, on the three hosts and Python 3.13 and 3.14: the
+  planted build (`planted_knapsack_defect`) failing all six Rust tests, the
+  good binding installed as a consumer installs it, and the whole suite with
+  it. A knapsack change made only in `cargo.py` now fails here. There is no
+  `cargo test` step: `cargo_core` has no Rust tests, only the comparison with
+  `cargo.py` through the binding.
+
 ### 0.7.0 - 2026-11-12
 
 Data contract **1.21.0**, above: spacecost is pinned at `v0.17.1`, was

@@ -32,6 +32,57 @@ jobs:
       - name: The snapshots match SHA256SUMS
         run: python -m spacevalue quotes check
 
+  # rust/: the knapsack's Rust copy, which economicspace's es_core links.  A
+  # knapsack change made only in cargo.py fails here, not on whichever machine
+  # happens to have the binding built.  The planted build (one ulp in every
+  # take) must fail all six Rust tests, or the tests could not see a defect;
+  # SPACEVALUE_REQUIRE_RUST=1 turns their skip-when-missing into a failure.
+  # The good binding is installed the way a consumer installs it, `pip
+  # install` of rust/cargo_py, which builds cargo_core by its relative path.
+  rust:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.13", "3.14"]
+    env:
+      SPACEVALUE_REQUIRE_RUST: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        shell: bash
+        run: python -m pip install -e ".[test]" maturin==1.9.6
+      # No `cargo test`: cargo_core has no Rust tests (it is tested only
+      # against cargo.py, through the binding), and a step that passes on zero
+      # tests would read as coverage it is not.
+      - name: The planted build fails every Rust test
+        shell: bash
+        run: |
+          python -m maturin build --release --features planted_knapsack_defect -m rust/cargo_py/Cargo.toml -o dist-plant
+          python -m pip install --force-reinstall --no-deps dist-plant/spacevalue_cargo_rs-*.whl
+          python -c "import spacevalue_cargo_rs as r; assert r.planted_defect()"
+          set +e
+          python -m pytest -q -p no:cacheprovider tests/test_cargo_rust.py > plant.log 2>&1
+          rc=$?
+          set -e
+          tail -3 plant.log
+          [ $rc -ne 0 ] || { echo "the planted build PASSED the Rust tests"; exit 1; }
+          grep -Eq "^6 failed" plant.log || { echo "expected all 6 Rust tests to fail"; exit 1; }
+      - name: The good build, installed as a consumer installs it
+        shell: bash
+        run: |
+          python -m pip install --force-reinstall --no-deps ./rust/cargo_py
+          python -c "import spacevalue_cargo_rs as r; assert not r.planted_defect()"
+      - name: The Rust tests, then the whole suite with the binding installed
+        shell: bash
+        run: |
+          python -m pytest -q -p no:cacheprovider tests/test_cargo_rust.py
+          python -m pytest -q
+
   # The editable install above reads the tree, so it cannot see a snapshot or
   # a module missing from the wheel.  This installs the built wheel and uses
   # it from a directory where the source is not importable.
