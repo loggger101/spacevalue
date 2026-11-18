@@ -48,6 +48,13 @@ where the full texts or their key tables are kept.
   longer publishes its daily prices openly.
 - **Shanghai Metals Market (SMM)**, tungsten APT, CIF Rotterdam, 2026-11-05:
   the tungsten reference price as contained W (data contract 1.20.0).
+- **SFA (Oxford) for the International Platinum Group Metals Association,
+  *PGM Fact Sheet: Osmium*** (written 19 March 2026; IPA edition May 2026),
+  <https://ipa-news.com/assets/pdfs/factsheets/2026-05-ipa-osmium-factsheet.pdf>:
+  PDF p. 10, world production "about 500kg-550kg/annum over 2024 and 2025",
+  the osmium row of `ANNUAL_WORLD_PRODUCTION_KG` (5.0e2, the low end); and
+  the $300–400/oz band beside the osmium reference price (General_Research
+  rc-125, rc-664).
 - **SteelBenchmarker**, price history, 2026-10-28: an East-of-Mississippi No. 1
   HMS comparator beside the iron row. The value is not taken from it.
 
@@ -79,6 +86,12 @@ quote them with it.
   20240002713, p. 3: "100s" of t/yr for human Mars transportation and "10's"
   of t/yr of commodities for initial commercial use, a notional unfunded
   scale beside the `mars_orbit` and `mars_surface` ceilings (rc-391, rc-392).
+- **Howard, R. L. 2021**, *A Common Habitat Deep Space Exploration Vehicle for
+  Transit and Orbital Operations*, AIAA ASCEND 2021, NASA NTRS 20210021084,
+  <https://ntrs.nasa.gov/citations/20210021084>, pp. 4 and 13: 1,404 t/yr of
+  LEO propellant transfer, one architecture's modelled capacity beside the
+  `leo` ceiling. The 500,000 kg/yr ceiling is a scenario and is not taken
+  from it (General_Research rc-788).
 
 ## In-space processing energy
 
@@ -128,13 +141,77 @@ Cited in code comments beside a value they explain; none reaches a value.
   N2 fractions and surface pressure behind `mars_surface`'s utility comments in
   `spacevalue/catalog.py` (General_Research rc-165).
 - **Comparators beside `IN_SPACE_UTILITY`, every factor an engineering
-  scenario** (rc-424 to rc-483): Roberts et al. 2023 (NASA in-space metals
-  TMP) and NASA's ISAM State of Play 2026, p. 266; JPL Pub 90-4 and NASA
-  TM-89876 (ammonia arcjets); ICES-2026-238 (habitat nitrogen); NASA
-  TM-100113 (resistojet fluids); ICES-2019-077 (Sabatier); NASA CR-4229 and
-  NTRS 20160006646 (phosphorus); ICES-2026-601 (sulfur as a catalyst
-  poison); Lewis, NASA SP-509, and Lewis's NIAC report NNX15AL85G;
-  Moses & Bushnell, NASA/TM-2016-219182; Grugel, NASA/TM-2008-215250.
+  scenario** (rc-424 to rc-483). Each is scoped to the claim its comment
+  makes; none establishes a utility fraction, a throughput, a demand or a
+  cost. Full references since 0.7.2 (General_Research rc-787, rc-796, rc-800
+  to rc-803):
+  - Structural metals: **Roberts, Ledbetter, Jones, Courtright & Blanchard
+    2023**, *NASA Technology Maturation Plan for In-space Manufacturing of
+    Metals*, 34th Annual Solid Freeform Fabrication Symposium, NTRS
+    20230012701, <https://ntrs.nasa.gov/citations/20230012701>; and
+    **Mulvaney, Arney et al. 2026**, *In-Space Servicing, Assembly, and
+    Manufacturing (ISAM) State of Play 2026 Edition*, NASA Langley, NTRS
+    20260008638, <https://ntrs.nasa.gov/citations/20260008638>, p. 266
+    (PGM07, ESA's MELT first-metal-printer ISS demonstration and its
+    four-print comparison). Manufacturing maturity only.
+  - Silicates as shielding: **Kim, Wilson, Thibeault, Nealy, Badavi & Kiefer
+    1994**, *Performance Study of Galactic Cosmic Ray Shield Materials*, NASA
+    TP-3473, NTRS 19950010497, <https://ntrs.nasa.gov/citations/19950010497>,
+    Fig. 15: the relative GCR cell-transformation metric of water and dry
+    regolith at 10–30 g/cm². Shielding context; the 0.25 factor also carries
+    feedstock and market judgement.
+  - Organics: **Lewis, J. S. 1992**, *Asteroid resources*, in *Space
+    Resources, Volume 3: Materials*, NASA SP-509, pp. 59–78, NTRS
+    19930007691, <https://ntrs.nasa.gov/citations/19930007691>, PDF p. 6
+    (up to 6% organic matter: an asteroid inventory, not a demand); and
+    **Morren, Hay, Haag & Sovey 1987**, *Preliminary performance
+    characterizations of an engineering model multipropellant resistojet for
+    space station application*, NASA TM-100113 / AIAA 87-2120, NTRS
+    19870014388, <https://ntrs.nasa.gov/citations/19870014388>, PDF p. 2
+    (methane among the station's resistojet fluids; also the CO2 entry).
+  - Ammonia and nitrogen: **Deininger, Chopra, Pivirotto, Goodfellow &
+    Barnett 1990**, *The 30-kW Ammonia Arcjet Technology Final Report*, JPL
+    Publication 90-4, NTRS 19900015874,
+    <https://ntrs.nasa.gov/citations/19900015874>, p. 41 (below 800 s);
+    **Hardy & Curran 1987**, *Low Power dc Arcjet Operation With
+    Hydrogen/Nitrogen/Ammonia Mixtures*, NASA TM-89876 / AIAA 87-1948, NTRS
+    19870013371, <https://ntrs.nasa.gov/citations/19870013371>, pp. 9 and 25;
+    and **Masangkay, Sweterlitsch & Frahlman 2026**, *Supplying Nitrogen on
+    Future Missions to the Moon and Mars*, ICES-2026-238, NTRS 20260003060,
+    <https://ntrs.nasa.gov/citations/20260003060>, Table 4 (9–4,620 kg of
+    nitrogen a mission, by destination).
+  - CO2 and carbon: **Franco, Devor, Snyder, Petersen & Hintze 2019**,
+    *Study of Sabatier Catalyst Performance for a Mars ISRU Propellant
+    Production Plant*, ICES-2019-077, NTRS 20190027280,
+    <https://ntrs.nasa.gov/citations/20190027280>, p. 2 (the Sabatier feed;
+    not where its CO2 comes from); **Moses & Bushnell 2016**, *Frontier
+    In-Situ Resource Utilization for Enabling Sustained Human Presence on
+    Mars*, NASA/TM-2016-219182, NTRS 20160005963,
+    <https://ntrs.nasa.gov/citations/20160005963>, sec. 3.1.2, printed p. 6
+    (Mars plastics from CO2 and H2, not asteroid carbon); and **Lewis 2016**,
+    *In-Space Production of Storable Propellants*, NIAC Phase I Final Report
+    for NNX15AL85G, NTRS 20190001542,
+    <https://ntrs.nasa.gov/citations/20190001542>, pp. 30 and 33 (352 t of CO2
+    per 1,000 t of propellant; it does not take the CO2 from carbonates).
+  - Phosphorus: **Wade 1989**, *Nutritional models for a Controlled
+    Ecological Life Support System (CELSS): Linear mathematical modeling*,
+    NASA CR-4229, NTRS 19890011244,
+    <https://ntrs.nasa.gov/citations/19890011244>, p. 60; and **Zeitlin,
+    Wheeler & Lunn 2015**, *Plant Biomass Leaching for Nutrient Recovery in
+    Closed Loop Systems Project*, KSC Center Innovation Fund, NTRS
+    20160006646, <https://ntrs.nasa.gov/citations/20160006646>, pp. 3 and 5
+    (a 60% recovery target, not an achieved fraction).
+  - Sulfur: **Abney, Nalette, Knox et al. 2026**, *An Evaluation of
+    Technology to Mitigate Freon R-218, Carbon Disulfide, and Carbonyl
+    Sulfide Contamination to Support Sabatier Integrated Operations*,
+    ICES-2026-601, NTRS 20260003516,
+    <https://ntrs.nasa.gov/citations/20260003516>, PDF p. 2 ("sulfur and
+    silicon were the most detrimental poisons" of ISS's flight catalyst); and
+    **Grugel 2008**, *Sulfur "Concrete" for Lunar Applications—Environmental
+    Considerations*, NASA/TM-2008-215250, NTRS 20080022947,
+    <https://ntrs.nasa.gov/citations/20080022947>, pp. 1–2 and 33 (concrete
+    from recovered lunar troilite sulfur: a post-extraction comparator, not
+    raw sulfide utility).
 - **Beside the demand shares and prices**: Kornuta et al. 2019 and LunA-10
   (rc-432); USGS MCS 2025 amorphous graphite and Platts N330 carbon black
   (rc-508); Cabri, Harris & Weiser 1996 (native PGM, rc-512); Kutyrev et
