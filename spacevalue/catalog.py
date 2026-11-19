@@ -178,7 +178,7 @@ class MineralValueConfig:
     # What each contract changed is CHANGELOG.md, not this comment: the
     # dashboard economicspace builds scrapes a field's comment block as its
     # help, and a changelog here was once 267 lines of it.
-    pipeline_version: str = "1.21.0"
+    pipeline_version: str = "1.22.0"
 
     # ─── DISPLAY ─────────────────────────────────────────────────────────────
     preview_rows:      int = 20   # rows per table in the CLI preview
@@ -2501,6 +2501,41 @@ def fetch_metals_dev(config: MineralValueConfig) -> pd.DataFrame:
 # so it always succeeds; downstream merge uses it to fill the gaps left by
 # the live sources.
 
+# WHAT `ref_price_source` SAYS, row by row (data contract 1.22.0).  Until
+# then every row carried "USGS/LME/mineralogy reference", which read as a quote
+# for rows that have none (General_Research rc-455, rc-456, rc-589 to rc-595,
+# rc-621 to rc-623).  Now:
+#   * a row with no reference price says so.  Such a phase has no market of
+#     its own here, and is unpriced on the Earth route by design: where it has
+#     value at all it is cargo._mineral_implied_value's sum of its yields at
+#     refined-element prices, with no payable fraction, treatment or refining
+#     charge, a gross contained-element proxy and not an ore or concentrate
+#     quote.  That covers the Fe-Ni alloys, magnetite, chromite, ilmenite,
+#     troilite, schreibersite, the sulfides and the rare PGM phases;
+#   * the five bulk silicates' $0.05/kg is an engineering placeholder with no
+#     matched product, grade, delivery point or date (the olivine row's
+#     "industrial olivine sand" names a product, not a quote);
+#   * every other row keeps the series label, and its own `notes` name the
+#     figure.
+_SOURCE_SERIES = "USGS/LME/mineralogy reference"
+_SOURCE_NONE = ("no direct quote: unpriced on the Earth route; any value is "
+                "its yields at refined-element prices, a gross "
+                "contained-element proxy")
+_SOURCE_PLACEHOLDER = ("engineering placeholder: no matched product, grade, "
+                       "delivery point or date")
+_PLACEHOLDER_PRICE_ROWS = frozenset({"olivine", "pyroxene", "orthopyroxene",
+                                     "enstatite", "silicates"})
+
+
+def _reference_source(name: str, ref_price) -> str:
+    """The `ref_price_source` a reference row carries; see the block above."""
+    if ref_price is None:
+        return _SOURCE_NONE
+    if name in _PLACEHOLDER_PRICE_ROWS:
+        return _SOURCE_PLACEHOLDER
+    return _SOURCE_SERIES
+
+
 def fetch_reference_table(config: MineralValueConfig) -> pd.DataFrame:
     """Static USGS / LME / mineralogy reference data, always available."""
     say("\n  Reference table - loading curated prices + densities ...")
@@ -2523,7 +2558,7 @@ def fetch_reference_table(config: MineralValueConfig) -> pd.DataFrame:
             "density_gcm3":         entry["density_gcm3"],
             "ref_price_usd_per_kg":     ref_price,
             "ref_price_date":       entry.get("ref_price_date"),
-            "ref_price_source":     "USGS/LME/mineralogy reference",
+            "ref_price_source":     _reference_source(entry["name"], ref_price),
             "value_basis":          value_basis,
             "notes":                notes,
             "yields_json":          json.dumps(entry.get("yields", {})),
