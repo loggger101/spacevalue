@@ -20,6 +20,7 @@ one non-ASCII character there kills the run.
 
 import argparse
 import dataclasses
+import json
 import os
 import sys
 
@@ -28,10 +29,42 @@ from spacecost import set_verbose
 
 from . import __version__
 from . import catalog as _catalog
-from .release import build_release, check_release
+from .release import _sha256, _source_commit, build_release, check_release
 
 _PREVIEW = ["name", "kind", "price_usd_per_kg", "price_basis", "value_route",
             "live_price_source", "annual_market_kg"]
+
+
+def write_build_manifest(cfg, table) -> str:
+    """Write `<table>.manifest.json` beside a standalone build's CSV.
+
+    WHAT TO CITE, TRAVELLING WITH THE TABLE.  CITATIONS.md asks for the
+    package release beside the data contract, and the CSV's rows carry only
+    the contract (General_Research rc-776).  A standalone build is not a
+    release, so `release_tag` is null and says so; `release` writes the
+    full manifest.json.  Values are untouched: this file only names the build.
+    """
+    out_dir = cfg.resolved_output_dir()
+    csv_path = os.path.join(out_dir, cfg.catalog_filename)
+    stem = os.path.splitext(cfg.catalog_filename)[0]
+    path = os.path.join(out_dir, stem + ".manifest.json")
+    manifest = {
+        "release_tag": None,
+        "release_tag_note": "a standalone build, not a published release",
+        "package_version": __version__,
+        "pipeline_version": cfg.pipeline_version,
+        "catalog_date": str(table["catalog_date"].iloc[0]),
+        "delivery_destination": cfg.delivery_destination,
+        "quote_snapshot": cfg.quote_snapshot or None,
+        "live_quotes": bool(cfg.use_yfinance),
+        "source_commit": _source_commit() or None,
+        "file": {"name": cfg.catalog_filename, "rows": int(len(table)),
+                 "sha256": _sha256(csv_path)},
+    }
+    with open(path, "w", encoding="utf-8", newline="\n") as fh:
+        json.dump(manifest, fh, indent=2)
+        fh.write("\n")
+    return path
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -110,7 +143,9 @@ def main(argv=None) -> int:
     if args.command == "build":
         set_verbose(not args.quiet)
         cfg = _config(args, output_dir=args.output_dir)
-        _catalog.build_mineral_value_catalog(cfg)
+        table = _catalog.build_mineral_value_catalog(cfg)
+        if len(table):
+            write_build_manifest(cfg, table)
         if args.quiet:
             print(os.path.join(cfg.resolved_output_dir(), cfg.catalog_filename))
         return 0

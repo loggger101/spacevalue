@@ -335,4 +335,7 @@ to rc-771). The delta-v rows themselves are spacecost's, cited there.
 ## Citing this package
 
 Cite the release you used, by its tag (`prices-YYYY-MM-DD` for the tables,
-`vX.Y.Z` for the code), and the data contract stamped in its rows.
+`vX.Y.Z` for the code), and the data contract stamped in its rows. A table
+from `spacevalue build` is not a release: its `<table>.manifest.json` gives
+the package version, data contract, quote snapshot and source commit to cite
+instead (General_Research rc-776).
