@@ -166,6 +166,15 @@ code.
 
 ## Package releases
 
+### 0.8.2 - 2026-11-19
+
+Comments and CITATIONS.md only; data contract unchanged at 1.22.1. The
+nickel-iron PGM split is called analyst-selected, with Wright & Fleischer's
+30 ppm siderite total located (p. A1, Table 15) and each named source's
+scope stated (General_Research rc-835); Cowen, Agnello & Petit (2012), cited
+in `implied_element_value()`, gains a full entry (rc-849). No price, yield
+or value moves.
+
 ### 0.8.1 - 2026-11-19
 
 Data contract **1.22.0 → 1.22.1**: destination and nickel-iron `notes` only
