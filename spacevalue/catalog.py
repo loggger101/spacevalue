@@ -522,8 +522,13 @@ downleg_cost_usd_per_kg = spacecost.downleg_cost_usd_per_kg
 # per-destination overrides in IN_SPACE_UTILITY_BY_DESTINATION below.
 IN_SPACE_UTILITY: Dict[str, float] = {
     # Volatiles, the canonical in-space commodity.  Water is propellant
-    # feedstock, radiation shielding, life support and coolant; electrolysis
-    # is the only processing step between raw ice and a fuelled depot.
+    # feedstock, radiation shielding, life support and coolant.  The step
+    # after extracting and conditioning it depends on the propulsion route:
+    # a chemical hydrolox depot electrolyses it to H2 and O2 (NASA's PTD-1
+    # flew HYDROS-C, which electrolyses water and burns the gases), while a
+    # water resistojet uses it directly (AQUARIUS on EQUULEUS, Sekine et al.
+    # 2024; spacecost's Water row).  Neither says what extracting water from
+    # asteroid ice takes (General_Research rc-864).
     # The four water factors, 1.00 here (LEO, cislunar, Mars orbit), 0.80 at
     # GEO, 0.60 on the lunar surface and 0.25 on Mars, are SCENARIOS: each
     # destination's comment gives a use or local-supply reason, and none is a

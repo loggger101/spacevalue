@@ -120,7 +120,28 @@ engineering allowances; none has the same feed and product boundary.
 
 - **Densities and formulas**: standard mineralogy references, Klein, C. &
   Hurlbut, C. S., *Manual of Mineralogy*, with Mindat.org and Webmineral.com.
-  Bulk physical constants; they do not change between builds.
+  Bulk physical constants; they do not change between builds. The phase
+  densities General_Research checked, and what each source supports
+  (General_Research rc-855, rc-856; economicspace's
+  `campaign/stage2/PROVENANCE.md` carries the same mapping):
+  - Mineral Data Publishing, *Handbook of Mineralogy* (2001-2005), sheets for
+    kamacite, cohenite, schreibersite, troilite, graphite and labradorite,
+    <https://handbookofmineralogy.org/>: nickel-iron 7.90 is kamacite's
+    calculated density (none measured); cohenite 7.40 sits inside its
+    measured 7.20-7.65; schreibersite 7.40 inside its calculated 7.12-7.44
+    but above its measured 7.0-7.3; carbon 2.10 inside graphite's measured
+    2.09-2.23; plagioclase 2.69 inside labradorite's measured 2.68-2.72; and
+    troilite FeS at 4.67-4.79 measured, 4.85 calculated.
+  - Remo, J. L. (1993), *Asteroid/Meteorite Analogs and Material Properties*,
+    in the Near-Earth-Object Interception Workshop proceedings, NASA-TM-108236,
+    <https://ntrs.nasa.gov/citations/19930019383>, Table 2, p. 169: selected
+    iron-nickel meteorites at 7.29-7.88, a bulk comparator for nickel-iron.
+  - Agrawal, P., Carlozzi, A. & Bryson, K. (2016), *Investigation of
+    Effective Material Properties of Stony Meteorites*, NASA NTRS 20170001623,
+    <https://ntrs.nasa.gov/citations/20170001623>, Table 1, p. 20: 4.61 for
+    troilite, the catalog's value, but printed against the formula FeSi, not
+    FeS, and below the Handbook's FeS range, so it is not reconciled with the
+    FeS row; and 2.62 for albite-composition feldspar.
 - **The mineral phases** in each taxonomy class (catalog data contract 1.7.0)
   come from AsteroidCatalog's `asteroid_catalog/mineralogy.py`, which cites a
   meteorite analogue per class (Dunn et al. 2010; King et al. 2015; Howard et
@@ -157,6 +178,18 @@ engineering allowances; none has the same feed and product boundary.
   Ga, Ge, Mo, W, Re) are order-of-magnitude means over the common iron
   meteorite groups: Scott, E. R. D. & Wasson, J. T. (1975), *Classification
   and properties of iron meteorites*, Rev. Geophys. Space Phys. 13, 527.
+
+## Water as propellant
+
+- **Sekine, H., Ataka, Y., Moriai, I., et al. (2024)**, *On-orbit Performance
+  Evaluation of AQUARIUS: a Water Resistojet Propulsion System*, Trans.
+  JSASS 67(5), 274-284,
+  <https://www.jstage.jst.go.jp/article/tjsass/67/5/67_T-23-55/_article/-char/en>,
+  Table 3, p. 282: water used directly as resistojet propellant.
+- **NASA, Pathfinder Technology Demonstrator (PTD-1, HYDROS-C)**,
+  <https://www.nasa.gov/smallspacecraft/pathfinder-technology-demonstrator/>:
+  water electrolysed to H2 and O2 and the gases burnt. The two routes the
+  water utility comment distinguishes (General_Research rc-864).
 
 ## Concentrate terms
 
