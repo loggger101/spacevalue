@@ -10,6 +10,23 @@ new contract is not evidence that a number moved.
 
 ## Data contracts
 
+### 1.22.0 - 2026-11-18
+
+**`ref_price_source` says what each reference price is. No number moves.**
+Until now every reference row carried "USGS/LME/mineralogy reference", which
+read as a quote for rows that have none (General_Research rc-455, rc-456,
+rc-589 to rc-595, rc-621 to rc-623). Now a row with no reference price says
+it has no direct quote and is unpriced on the Earth route by design, any
+value being its yields at refined-element prices, a gross contained-element
+proxy (20 rows: the Fe-Ni alloys, magnetite, chromite, ilmenite, troilite,
+schreibersite, the sulfides and the rare PGM phases). The five bulk silicates'
+$0.05/kg is labelled an engineering placeholder. Every other row keeps the
+series label.
+
+In the `tests/data/prices-2026-10-07/` fixtures, which are re-recorded, only
+`ref_price_source` (those 25 rows) and the stamp move; every price, yield and
+value column is identical to 1.21.0.
+
 ### 1.21.0 - 2026-11-12
 
 **spacecost v0.14.0 → v0.17.1, and the delivery chains move.** Nothing in this
@@ -134,6 +151,14 @@ come from and what a table's date means:
 code.
 
 ## Package releases
+
+### 0.8.0 - 2026-11-18
+
+Data contract **1.21.0 → 1.22.0**: the reference rows' `ref_price_source`
+column is now set per row (see the contract entry above), and the fixtures
+are re-recorded for that column and the stamp. No price, yield or value
+moves. Nothing reaches economicspace until a `prices-*` release is built on
+it and Stage 2 repins.
 
 ### 0.7.3 - 2026-11-18
 
