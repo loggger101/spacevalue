@@ -1468,11 +1468,15 @@ _NICKEL_IRON_YIELDS: Dict[str, float] = {
     "iron":      0.900,    # ~90 wt% Fe
     "nickel":    0.090,    # 7-10 wt% Ni in IIIAB octahedrites
     "cobalt":    0.005,
-    # Platinum-group metals (PGMs).  Siderites average ~30 ppm total
-    # PGM (per USGS Bulletin 1214 / Nichiporuk 1965).  Distribution
-    # below sums to ~37 ppm total + 1 ppm Au, calibrated to IIIAB
-    # medium-octahedrite means.  Ir bumped from 2→4 ppm (range cited
-    # at 0.01-19 ppm).  Ru + Os added (were missing in v1.1.0-1.1.1),
+    # Platinum-group metals (PGMs).  Siderites average 30 ppm total
+    # platinum metals (Wright & Fleischer, USGS Bulletin 1214-A, 1965,
+    # p. A1; per-element siderite ranges in its Table 15, p. A17, which
+    # draws on Nichiporuk & Brown among others).  The per-element split
+    # below is ANALYST-SELECTED: no table or sample set gives it, and the
+    # "IIIAB medium-octahedrite means" it was once said to be calibrated
+    # to are not identified.  It sums to 35.5 ppm + 1 ppm Au
+    # (General_Research rc-835).  Ir bumped from 2→4 ppm (the 0.01-19 ppm
+    # range once cited here has no recorded source).  Ru + Os added (were missing in v1.1.0-1.1.1),
     # both concentrate in the metallic phase and are present at
     # 1-5 ppm in nearly every iron meteorite group.
     "platinum":  1.5e-5,   # 15 ppm   (Pt is the dominant PGM)
@@ -1900,8 +1904,11 @@ MINERAL_REFERENCE: List[dict] = [
 
     {   # ── Nickel-iron alloy ─────────────────────────────────────────────
         # Typical iron-meteorite analogue: ~90 % Fe, ~9 % Ni, ~0.5 % Co,
-        # plus PGM trace abundances drawn from average chondritic / iron-
-        # meteorite compositions (Lodders 2003, Walker 2012).
+        # plus PGM trace abundances.  Lodders 2003 and Walker 2012 are
+        # named for average chondritic / iron-meteorite compositions, but
+        # neither is the table behind these yields, which are
+        # analyst-selected (see the PGM comment above; General_Research
+        # rc-835).
         "name":                  "nickel-iron",
         "kind":                  "mineral",
         "formula":               "FeNi",

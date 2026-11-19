@@ -127,10 +127,49 @@ engineering allowances; none has the same feed and product boundary.
   al. 2015; Alexander et al. 2007; Mittlefehldt 2015; Sunshine et al. 2008;
   Rubin et al. 2019; Hiroi et al. 2001). That repository is the authority for
   them and is not restated here.
+- **The platinum-group metals of meteoritic Fe-Ni** in the `nickel-iron`
+  yields (Pt 15, Pd 10, Ru 3, Ir 4, Os 2, Rh 1.5 and Au 1 ppm) are
+  analyst-selected: no table or sample set gives the split (General_Research
+  rc-835). The sources named beside them, and what each supports:
+  - Wright, T. L. & Fleischer, M. (1965), *Geochemistry of the platinum
+    metals*, U.S. Geological Survey Bulletin 1214-A,
+    <https://doi.org/10.3133/b1214A>: siderites average 30 ppm total
+    platinum metals (p. A1), with per-element ranges in Table 15 (p. A17).
+  - Nichiporuk, W. & Brown, H. (1965), *The distribution of platinum and
+    palladium metals in iron meteorites and in the metal phase of ordinary
+    chondrites*, J. Geophys. Res. 70, 459-470,
+    <https://doi.org/10.1029/JZ070i002p00459>: Pt and Pd in iron
+    meteorites, among the data Wright & Fleischer summarise; not read here.
+  - Lodders, K. (2003), *Solar System Abundances and Condensation
+    Temperatures of the Elements*, ApJ 591, 1220-1247,
+    <https://doi.org/10.1086/375492>; and Walker, R. J. (2012), *Evidence for
+    homogeneous distribution of osmium in the protosolar nebula*, Earth
+    Planet. Sci. Lett. 351-352, 36-44,
+    <https://doi.org/10.1016/j.epsl.2012.07.026>: named for average
+    chondritic and iron-meteorite compositions; neither is the table
+    behind the yields.
+  - Kargel, J. S. (1994), *Metalliferous asteroids as potential sources of
+    precious metals*, J. Geophys. Res. Planets 99(E10), 21129-21141,
+    <https://doi.org/10.1029/94JE02141>: LL-chondrite metal at 50-220 ppm
+    precious metals, the comparison beside the S-type's ~48 ppm; a
+    comparator, not a yield.
 - **The trace metals of meteoritic Fe-Ni** in the `nickel-iron` yields (Cu,
   Ga, Ge, Mo, W, Re) are order-of-magnitude means over the common iron
   meteorite groups: Scott, E. R. D. & Wasson, J. T. (1975), *Classification
   and properties of iron meteorites*, Rev. Geophys. Space Phys. 13, 527.
+
+## Concentrate terms
+
+- **Cowen, Agnello & Petit (2012)**, *Evaluation of net smelter returns in
+  the South African PGE industry by application of base metal concentrate
+  commercial treatment terms*, SAIMM Platinum 2012 conference proceedings,
+  pp. 577-592, <https://saimm.co.za/Conferences/Pt2012/577-592_Cowen.pdf>,
+  Table IV, p. 585: payability of about 90% for the PGE and 85% for Ni and
+  Cu, less treatment and refining charges. Cited in
+  `implied_element_value()`'s caveat that refined-metal prices overstate
+  concentrate receipts; terrestrial concentrate terms, not an offtake
+  contract for meteorite phases, and no value uses them (General_Research
+  rc-849).
 
 ## Facts the comments state
 
