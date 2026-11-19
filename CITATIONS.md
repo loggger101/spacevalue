@@ -228,6 +228,25 @@ Cited in code comments beside a value they explain; none reaches a value.
   al. 2023, Lithosphere 2023(1):126 (awaruite, rc-513); IMF WP 2024/077 and
   Banque de France Eco Notepad 419 (elasticity, rc-507).
 
+## Delivery-route figures in the destination notes
+
+The `notes` column's route sentences interpolate spacecost's delivery
+chains; these are the studies the sentences name (General_Research rc-769
+to rc-771). The delta-v rows themselves are spacecost's, cited there.
+
+- **NASA, *Human Exploration of Mars Design Reference Architecture 5.0***,
+  NASA/SP-2009-566 (2009), printed p. 22: the 250 x 33,793 km 1-sol staging
+  orbit. The 2,100 m/s 200-km comparator beside it is a two-body calculation
+  (spacecost's low-Mars-orbit TEI row), not a DRA figure.
+- **Edquist et al. 2022**, Table 3 (PDF p. 14): the entry masses behind the 28.5% (MSL) and 30.5% (Perseverance)
+  entry-to-rover ratios, with the rover masses from JPL's MSL fact sheet and
+  NASA's Mars 2020 flight-mechanics paper (spacecost `delivery.py`).
+- **NASA-CR-195527**, Table 2.1 (3,140 m/s TLI from a 185 km orbit), and
+  **Benson, Asher & Reese 2025**, NTRS 20250000718, slide 5 (400-450 m/s TLI
+  to NRHO): the two halves of the cislunar sum, from different missions.
+- **NASA SP-4029**, *Apollo by the Numbers*: the TLI, lunar-orbit insertion
+  and LM powered-descent figures of the lunar-surface route.
+
 ## Software
 
 - **spacecost** (MIT, the same author): the delivery chains, the launch price
