@@ -331,7 +331,11 @@ delivered_cost_usd_per_kg = spacecost.delivered_cost_usd_per_kg
 
 # Terrestrial bulk-industrial water, for the earth_surface case.  Municipal /
 # industrial bulk water runs $0.0005-0.002/kg; asteroid water landed on Earth
-# competes with rain.
+# competes with rain.  $0.001/kg and its band are a SCENARIO with no named
+# sale point.  One delivered comparator: Omaha MUD's 2026 Schedule W-3, $1.9657
+# per CCF above 5,000 CCF a month, at its 748 US gal per CCF is $0.000694/kg
+# before the monthly minimum, service charge and 2% in-city addition; one
+# utility's tariff, not an asteroid-water netback (General_Research rc-602).
 _EARTH_SURFACE_WATER_USD_PER_KG = 0.001
 
 
@@ -932,13 +936,20 @@ def in_space_utility(name: str, destination: str) -> float:
 ANNUAL_WORLD_PRODUCTION_KG: Dict[str, float] = {
     # Precious: small markets, and the ones asteroid mining always targets
     "osmium":         5.0e2,      # ~500-550 kg/yr over 2024-25 (IPA/SFA factsheet, 2026), a by-product of a by-product
+    # Iridium, rhodium and ruthenium: no edition or series is recorded for these
+    # three, and USGS MCS does not report them one by one, so they are rounded
+    # scenario figures, not mine production read from MCS.  The comparator is
+    # a different series: Johnson Matthey's PGM Market Report 2026 gives 2025
+    # total primary supply of 7.1 t Ir (p. 34), 21.8 t Rh (p. 32) and 30.2 t
+    # Ru (p. 33); the stored figures run 5.6% and 5.5% above it for the first
+    # two and 0.7% below for ruthenium (General_Research rc-524).
     "iridium":        7.5e3,      # ~7.5 t
     "rhodium":        2.3e4,      # ~23 t
     "ruthenium":      3.0e4,      # ~30 t
     "platinum":       1.7e5,      # ~170 t mined, 2025e (USGS MCS 2026)
     "palladium":      1.9e5,      # ~190 t mined, 2025e (USGS MCS 2026)
     "gold":           3.3e6,      # ~3,300 t mined, 2025e (USGS MCS 2026)
-    "silver":         2.6e7,      # ~26,000 t
+    "silver":         2.6e7,      # ~26,000 t mined, 2025e (USGS MCS 2026, Silver), mine output and not demand (rc-523)
     # Base metals; large markets, saturation effectively never binds
     "cobalt":         3.1e8,      # ~310,000 t mined, 2025 (USGS MCS 2026)
     "copper":         2.3e10,     # ~23 Mt mined, 2024 and 2025e; refinery 29 Mt, 2025e (USGS MCS 2026)
@@ -952,7 +963,15 @@ ANNUAL_WORLD_PRODUCTION_KG: Dict[str, float] = {
     "molybdenum":     2.6e8,      # ~260,000 t
     "titanium":       3.2e8,      # ~320,000 t sponge, excluding the U.S.
     "chromium":       4.7e10,     # ~47 Mt shipping-grade chromite ore, the market it trades in
+    # Elemental P4 has no USGS series (MCS reports phosphate-rock mine output).
+    # JRC EUR 30704 EN, sec. 7.2, p. 31, says world P4 production "is not
+    # known" and estimates 900-1,200 kt/yr; 1 Mt is an approximate scenario
+    # inside that (General_Research rc-529).
     "phosphorus":     1.0e9,      # ~1 Mt elemental P4 (phosphate rock is 240 Mt)
+    # Sulfur is not this group's MCS 2025 figure (85 Mt for 2024).  MCS 2026
+    # revises 2024 to 83.9 Mt and estimates 84.0 Mt for 2025 (Sulfur, p. 2);
+    # 83 Mt is a rounded figure whose edition is not recorded, about 1% under
+    # both, and is kept (General_Research rc-527).
     "sulfur":         8.3e10,     # ~83 Mt
     "ammonia":        1.5e11,     # ~150 Mt N as ammonia
     "carbon dioxide": 2.3e11,     # ~230 Mt merchant CO2

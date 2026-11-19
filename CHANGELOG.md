@@ -135,6 +135,25 @@ code.
 
 ## Package releases
 
+### 0.7.3 - 2026-11-18
+
+Data contract 1.21.0, unchanged, and **no number moves**: comments in
+`catalog.py`, CITATIONS.md and `__version__`; `catalog.py` parses to the same
+AST. Applies General_Research rc-523, rc-524, rc-527, rc-529 and rc-602, which
+ask what each world-production ceiling and the earth-surface water price
+stand on.
+
+- Silver's 26,000 t is USGS MCS 2026's 2025e mine output (rc-523).
+- Iridium, rhodium and ruthenium have no recorded edition and MCS does not
+  report them singly: rounded scenarios, beside Johnson Matthey's 2025
+  primary supply (rc-524).
+- Sulfur's 83 Mt is not the group's MCS 2025 figure (85 Mt); it sits about
+  1% under MCS 2026's 83.9 and 84.0 Mt and is kept (rc-527).
+- Elemental phosphorus's 1 Mt is a scenario inside JRC's 900-1,200 kt/yr
+  estimate (rc-529).
+- The earth-surface water price is a scenario; Omaha MUD's industrial tariff,
+  $0.000694/kg at the marginal rate, is one comparator (rc-602).
+
 ### 0.7.2 - 2026-11-18
 
 Data contract 1.21.0, unchanged, and **no number moves**: CITATIONS.md, one

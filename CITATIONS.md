@@ -212,6 +212,16 @@ Cited in code comments beside a value they explain; none reaches a value.
     <https://ntrs.nasa.gov/citations/20080022947>, pp. 1–2 and 33 (concrete
     from recovered lunar troilite sulfur: a post-extraction comparator, not
     raw sulfide utility).
+- **Beside the world-production ceilings and the water price**, none a new
+  value (General_Research rc-523, rc-524, rc-527, rc-529, rc-602): USGS,
+  *Mineral Commodity Summaries 2026*, Silver (26,000 t mined, 2025e) and
+  Sulfur (83.9 Mt for 2024, 84.0 Mt 2025e, p. 2) chapters; Johnson Matthey,
+  *PGM Market Report 2026*, pp. 32-34 (2025 primary supply of iridium,
+  rhodium and ruthenium, a different series from the scenario figures);
+  Matos et al. 2021, JRC EUR 30704 EN, sec. 7.2, p. 31 (world elemental P4
+  900-1,200 kt/yr, precise figure unknown); and Metropolitan Utilities
+  District (Omaha), *Schedule W-3*, effective 2 Jan 2026 (an industrial
+  water tariff beside the earth-surface water scenario).
 - **Beside the demand shares and prices**: Kornuta et al. 2019 and LunA-10
   (rc-432); USGS MCS 2025 amorphous graphite and Platts N330 carbon black
   (rc-508); Cabri, Harris & Weiser 1996 (native PGM, rc-512); Kutyrev et
