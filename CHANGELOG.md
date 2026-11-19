@@ -166,6 +166,14 @@ code.
 
 ## Package releases
 
+### 0.8.6 - 2026-11-19
+
+`spacevalue build` now writes `<table>.manifest.json` beside the CSV: package
+version, data contract, catalog date, destination, quote snapshot (or live),
+source commit and the CSV's sha256, with `release_tag` null because a
+standalone build is not a release (General_Research rc-776). `release` is
+unchanged. Data contract unchanged at 1.22.1; no value moves.
+
 ### 0.8.5 - 2026-11-19
 
 Comments and CITATIONS.md only; data contract unchanged at 1.22.1. The

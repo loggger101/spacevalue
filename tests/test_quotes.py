@@ -100,3 +100,22 @@ def test_the_default_build_needs_no_network(tmp_path, monkeypatch):
                               use_metals_api=False)
     t = catalog.build_mineral_value_catalog(cfg)
     assert t["live_price_source"].isna().all()
+
+
+def test_a_standalone_build_names_what_to_cite(tmp_path, monkeypatch):
+    """`spacevalue build` leaves a manifest beside its CSV (rc-776)."""
+    import json
+    import os
+    import spacevalue
+    from spacevalue.cli import main
+    monkeypatch.setitem(sys.modules, "yfinance", None)
+    assert main(["build", "cislunar", "--quotes", "metals-2026-10-07",
+                 "-o", str(tmp_path), "-q"]) == 0
+    names = os.listdir(str(tmp_path))
+    man = [n for n in names if n.endswith(".manifest.json")]
+    assert len(man) == 1, names
+    m = json.load(open(os.path.join(str(tmp_path), man[0]), encoding="utf-8"))
+    assert m["package_version"] == spacevalue.__version__
+    assert m["release_tag"] is None and m["quote_snapshot"] == "metals-2026-10-07"
+    assert m["delivery_destination"] == "cislunar"
+    assert m["file"]["name"] in names and len(m["file"]["sha256"]) == 64
