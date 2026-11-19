@@ -166,6 +166,14 @@ code.
 
 ## Package releases
 
+### 0.8.5 - 2026-11-19
+
+Comments and CITATIONS.md only; data contract unchanged at 1.22.1. The
+carbon-dioxide Earth market ceiling, 230 Mt/yr, is total CO2 use (IEA 2019),
+not merchant sales (about 30 Mt/yr, S&P Global 2025), and is no longer
+labelled merchant; the owner chose the total-use boundary (General_Research
+rc-526). No value moves.
+
 ### 0.8.4 - 2026-11-19
 
 Comments and CITATIONS.md only; data contract unchanged at 1.22.1. CITATIONS.md
