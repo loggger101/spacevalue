@@ -166,6 +166,14 @@ code.
 
 ## Package releases
 
+### 0.8.3 - 2026-11-19
+
+Comments only; data contract unchanged at 1.22.1. The four water utility
+factors are called scenarios with no destination-matched derivation, and their
+linear effect on water's price is stated (General_Research rc-823); the
+silicates' composite 0.25 is called a scenario whose non-shielding part no
+source quantifies (rc-296). No price, yield or value moves.
+
 ### 0.8.2 - 2026-11-19
 
 Comments and CITATIONS.md only; data contract unchanged at 1.22.1. The

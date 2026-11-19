@@ -524,6 +524,13 @@ IN_SPACE_UTILITY: Dict[str, float] = {
     # Volatiles, the canonical in-space commodity.  Water is propellant
     # feedstock, radiation shielding, life support and coolant; electrolysis
     # is the only processing step between raw ice and a fuelled depot.
+    # The four water factors, 1.00 here (LEO, cislunar, Mars orbit), 0.80 at
+    # GEO, 0.60 on the lunar surface and 0.25 on Mars, are SCENARIOS: each
+    # destination's comment gives a use or local-supply reason, and none is a
+    # derivation or calibration with a buyer, local supply or market boundary.
+    # The in-space price is utility x launch cost avoided, less processing, so
+    # every 0.10 of a factor moves water's price by a tenth of that
+    # destination's launch cost avoided (General_Research rc-823).
     "water":            1.00,
     # Structural metals.  Discounted for the in-space manufacturing gap:
     # raw Fe-Ni is not a pressure vessel, and the melting / forming plant that
@@ -563,7 +570,8 @@ IN_SPACE_UTILITY: Dict[str, float] = {
     # alone, dry regolith comes within ~1.2x of water on NASA's GCR
     # cell-transformation metric at 10-30 g/cm2 (NASA TP-3473, Fig. 15,
     # digitised by General_Research, rc-296), so the 4:1 gap here is
-    # feedstock and market judgement, not shielding physics.
+    # feedstock and market judgement, not shielding physics, and no source
+    # quantifies that non-shielding part: 0.25 is a scenario.
     "olivine":          0.25, "pyroxene":        0.25, "orthopyroxene": 0.25,
     "enstatite":        0.25, "plagioclase":     0.25, "spinel":        0.25,
     "phyllosilicates":  0.25, "oxides":          0.25, "silicates":     0.25,
