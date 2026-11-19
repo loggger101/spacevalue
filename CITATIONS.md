@@ -294,6 +294,12 @@ Cited in code comments beside a value they explain; none reaches a value.
   900-1,200 kt/yr, precise figure unknown); and Metropolitan Utilities
   District (Omaha), *Schedule W-3*, effective 2 Jan 2026 (an industrial
   water tariff beside the earth-surface water scenario).
+- **The carbon-dioxide ceiling** (General_Research rc-526): IEA, *Putting CO2
+  to Use* (2019), executive summary, p. 3, about 230 Mt of CO2 used a year,
+  after IHS Markit (2018), the total-use figure the ceiling takes; and S&P
+  Global Commodity Insights, *Yes, CO2 is a Commodity* (March 2025), p. 7,
+  270 Mt of 2024 demand and merchant sales of about 30 Mt a year, the
+  narrower boundary the ceiling does not use.
 - **Beside the demand shares and prices**: Kornuta et al. 2019 and LunA-10
   (rc-432); USGS MCS 2025 amorphous graphite and Platts N330 carbon black
   (rc-508); Cabri, Harris & Weiser 1996 (native PGM, rc-512); Kutyrev et

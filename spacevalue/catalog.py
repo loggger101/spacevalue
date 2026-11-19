@@ -1008,7 +1008,12 @@ ANNUAL_WORLD_PRODUCTION_KG: Dict[str, float] = {
     # both, and is kept (General_Research rc-527).
     "sulfur":         8.3e10,     # ~83 Mt
     "ammonia":        1.5e11,     # ~150 Mt N as ammonia
-    "carbon dioxide": 2.3e11,     # ~230 Mt merchant CO2
+    # ~230 Mt/yr of CO2 USED, all physical uses (IEA, Putting CO2 to Use,
+    # 2019, p. 3, after IHS Markit 2018), mostly enhanced oil recovery and
+    # on-site urea.  Not merchant sales, which run about 30 Mt/yr (S&P Global
+    # Commodity Insights, 2025, p. 7): the ceiling is total use, by owner
+    # decision (General_Research rc-526).
+    "carbon dioxide": 2.3e11,
     # Effectively unlimited on Earth
     "water":          1.0e15,
     "carbon":         1.0e12,

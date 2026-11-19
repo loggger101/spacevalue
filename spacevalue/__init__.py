@@ -33,7 +33,7 @@ import importlib
 
 # The PACKAGE release.  Not the data contract: that is
 # `MineralValueConfig.pipeline_version`, stamped into every row.
-__version__ = "0.8.4"
+__version__ = "0.8.5"
 
 # Each public name, and the submodule that defines it.
 _LAZY = {name: "catalog" for name in (
