@@ -166,6 +166,15 @@ code.
 
 ## Package releases
 
+### 0.8.4 - 2026-11-19
+
+Comments and CITATIONS.md only; data contract unchanged at 1.22.1. CITATIONS.md
+maps the phase densities to the Handbook of Mineralogy sheets, Remo 1993 and
+Agrawal et al. 2016, with Agrawal's troilite printed as FeSi and left
+unreconciled (General_Research rc-855, rc-856). The water utility comment no
+longer calls electrolysis the only processing step: it names the hydrolox and
+resistojet routes, with AQUARIUS and HYDROS-C cited (rc-864). No value moves.
+
 ### 0.8.3 - 2026-11-19
 
 Comments only; data contract unchanged at 1.22.1. The four water utility
