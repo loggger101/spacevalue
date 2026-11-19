@@ -10,6 +10,20 @@ new contract is not evidence that a number moved.
 
 ## Data contracts
 
+### 1.22.1 - 2026-11-19
+
+**The destination notes name their sources. No number moves.** The `notes`
+route sentences cite the studies behind each figure: the cislunar sum as a
+cross-study benchmark (NASA-CR-195527, Benson et al. 2025), the lunar route's
+Apollo figures (NASA SP-4029), DRA 5.0's page for the 1-sol orbit with the
+200-km comparator called a two-body calculation, and the Mars entry fraction's
+MSL and Perseverance ratios (General_Research rc-769 to rc-771). The 28.5 deg
+GTO plane is called a reference scenario (rc-604), and the nickel-iron row's
+analogue is called analyst-selected (rc-815).
+
+In the re-recorded `tests/data/prices-2026-10-07/` fixtures only `notes` and
+the stamp move; every price, yield and value column is identical to 1.22.0.
+
 ### 1.22.0 - 2026-11-18
 
 **`ref_price_source` says what each reference price is. No number moves.**
@@ -151,6 +165,13 @@ come from and what a table's date means:
 code.
 
 ## Package releases
+
+### 0.8.1 - 2026-11-19
+
+Data contract **1.22.0 → 1.22.1**: destination and nickel-iron `notes` only
+(see the contract entry above), CITATIONS.md gains the route studies, and
+`rust/README.md` calls its speed row an informal timing (General_Research
+rc-765). No price, yield or value moves.
 
 ### 0.8.0 - 2026-11-18
 

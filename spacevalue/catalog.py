@@ -178,7 +178,7 @@ class MineralValueConfig:
     # What each contract changed is CHANGELOG.md, not this comment: the
     # dashboard economicspace builds scrapes a field's comment block as its
     # help, and a changelog here was once 267 lines of it.
-    pipeline_version: str = "1.22.0"
+    pipeline_version: str = "1.22.1"
 
     # ─── DISPLAY ─────────────────────────────────────────────────────────────
     preview_rows:      int = 20   # rows per table in the CLI preview
@@ -352,7 +352,13 @@ _EARTH_SURFACE_WATER_USD_PER_KG = 0.001
 # glance which numbers this table asserts and which it derives.  They are
 # comparisons and context, not terms in the price.
 _GEO_COPLANAR_GTO_BURN_M_S = 1_477.0   # the same apogee burn with no plane change
-_PARKING_INCLINATION_DEG   = 28.5      # Cape Canaveral, the latitude GTO starts at
+# 28.5 deg is a named reference scenario: Cape Canaveral's latitude standing
+# in for the plane a GTO starts in, a comparator rather than a
+# trajectory-specific transfer plane (General_Research rc-604).
+_PARKING_INCLINATION_DEG   = 28.5      # reference launch-plane scenario
+# Two-body: circularising at 200 km from spacecost's 2.65 km/s Hohmann arrival
+# v-infinity, as its low-Mars-orbit TEI row derives it; not a DRA 5.0 figure
+# (General_Research rc-769).
 _MARS_200KM_CAPTURE_M_S    = 2_100.0   # circularising instead of binding an ellipse
 _MARS_1SOL_ORBIT_KM        = (250, 33_793)   # NASA DRA 5.0 staging orbit, altitudes
 
@@ -381,7 +387,9 @@ def _build_destination_notes() -> Dict[str, str]:
         "gto":           f"LEO -> GTO ({gto[0]:,.0f} m/s), the perigee burn "
                          "alone, into a "
                          f"{_PARKING_INCLINATION_DEG:.1f} deg transfer orbit "
-                         "with its apogee at GEO.  The depot sits in the plane "
+                         "with its apogee at GEO (a reference scenario: Cape "
+                         "Canaveral's latitude standing in for the launch "
+                         "plane).  The depot sits in the plane "
                          "the launch puts it in, so no plane change is paid, "
                          "and this is the first leg of the geo chain: a GTO "
                          "kilogram is never the dearer of the two.",
@@ -391,13 +399,19 @@ def _build_destination_notes() -> Dict[str, str]:
                          "inclination at once.  Coplanar that burn would be "
                          f"{_GEO_COPLANAR_GTO_BURN_M_S:,.0f}, so "
                          f"{plane_change:,.0f} m/s of this price is the "
-                         "latitude of the launch site.  Dearer per kilogram "
+                         "reference launch plane, Cape Canaveral's latitude "
+                         "standing in for the launch site.  Dearer per kilogram "
                          "than a cislunar depot, and a far narrower market "
                          "once it arrives.",
         "cislunar":      f"TLI + NRHO insertion ({cis[0]:,.0f} m/s) on one "
-                         "cryo stage.",
+                         "cryo stage: an approximate cross-study benchmark, "
+                         "a TLI from a 185 km parking orbit (NASA-CR-195527, "
+                         "Table 2.1) plus a fast TLI-to-NRHO insertion "
+                         "(Benson, Asher & Reese 2025, slide 5), from "
+                         "different missions.",
         "lunar_surface": f"TLI + LOI ({lun[0]:,.0f} m/s) on a cryo stage, then "
-                         f"powered descent ({lun[1]:,.0f} m/s) on a lander.  "
+                         f"powered descent ({lun[1]:,.0f} m/s) on a lander, "
+                         "all three Apollo figures (NASA SP-4029).  "
                          "No atmosphere, so "
                          "every metre per second is propulsive — the Moon is "
                          "the nearest destination and among the dearest to "
@@ -406,16 +420,23 @@ def _build_destination_notes() -> Dict[str, str]:
                          "capture into the "
                          f"{_MARS_1SOL_ORBIT_KM[0]:,d} x "
                          f"{_MARS_1SOL_ORBIT_KM[1]:,d} km 1-sol staging orbit "
-                         "(NASA DRA 5.0).  "
+                         "(NASA DRA 5.0, NASA/SP-2009-566, printed p. 22).  "
                          "Binding an ellipse is far cheaper than "
                          "circularising: the same arrival costs "
                          f"{_MARS_200KM_CAPTURE_M_S:,.0f} m/s into a 200-km "
-                         "orbit.  Nothing enters the atmosphere, so unlike "
+                         "orbit, a two-body calculation at spacecost's "
+                         "Hohmann arrival v-infinity, not a DRA figure.  "
+                         "Nothing enters the atmosphere, so unlike "
                          "mars_surface there is no entry-survival fraction "
                          "on top.",
         "mars_surface":  f"TMI ({m_s[0]:,.0f} m/s), then aeroentry surviving "
                          f"{_entry_survival_pct('mars_surface'):.0f}% of entry "
-                         "mass (MSL / Perseverance measured), then "
+                         "mass, about MSL's and Perseverance's "
+                         "entry-to-rover ratios: 899 of 3,153 kg, 28.5%, "
+                         "and 1,026 of 3,369 kg, 30.5% (entry masses, "
+                         "Edquist et al. 2022, Table 3; rover masses, JPL's "
+                         "MSL fact sheet and NASA's Mars 2020 "
+                         "flight-mechanics paper), then "
                          f"{m_s[1]:,.0f} m/s of "
                          "retropropulsion.  Mars is far but its atmosphere "
                          "does most of the braking for free.",
@@ -1435,7 +1456,10 @@ _NEW_ROW_PRICE_DATE = "2025-01-31"
 
 
 # ─── THE NICKEL-IRON ALLOY, AND THE THREE IT IS MADE OF  (v1.12.0) ───────────
-# The bulk alloy: a typical IIIAB iron meteorite.  Moved here from the
+# The bulk alloy: an analyst-selected IIIAB iron-meteorite analogue.  No
+# table or sample set is cited for the Fe / Ni / Co fractions; the Lodders
+# 2003 and Walker 2012 names beside the row are for the PGM traces
+# (General_Research rc-815).  Moved here from the
 # nickel-iron row, unchanged and in the same order (the row's `yields_json` is
 # this dict's json.dumps, so the order is part of the output), because the
 # alloys below are derived from it.
@@ -1890,7 +1914,10 @@ MINERAL_REFERENCE: List[dict] = [
         # v1.12.0: the table moved above MINERAL_REFERENCE, unchanged, so the
         # three alloys it unmixes into can be derived from it.
         "yields": _NICKEL_IRON_YIELDS,
-        "notes":                 "Iron-meteorite analogue (IIIAB octahedrite mean) — "
+        "notes":                 "Iron-meteorite analogue (IIIAB octahedrite), "
+                                 "analyst-selected: no table or sample set is "
+                                 "cited for the Fe / Ni / Co fractions, and the "
+                                 "trace citations are for the PGMs — "
                                  "Fe + Ni + trace PGMs + Au.  Total PGM ≈ 37 ppm matches "
                                  "siderite literature.  Yields cover all 6 PGMs as of v1.1.2.",
     },

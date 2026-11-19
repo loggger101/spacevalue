@@ -52,7 +52,12 @@ many calls each side answered.
 | fuzz against the Python | 60,000 + 30,000 + 30,000 calls, 0 differ (exceptions compared too) |
 | plant (`planted_knapsack_defect`: one ulp in every take and in the capped sale's value) | all six tests fail |
 | the whole suite with the binding installed | 189 passed |
-| per call, through the Python boundary | 1.9x / 1.3x / 3.7x faster: about 1 to 3.5 us saved per call |
+| per call, through the Python boundary | 1.9x / 1.3x / 3.7x faster: about 1 to 3.5 us saved per call (informal, see below) |
+
+The speed row is an informal timing, not a benchmark: no harness, raw
+results, CPU, build profile, workload or repetition count is committed, so
+treat it as indicative only (General_Research rc-765). The other rows are
+correctness checks, which the committed tests reproduce.
 
 Called from Python, the binding is worth little: the boundary costs about as
 much as the walk. The gain is in `es_core`, where the sizing loop calls
