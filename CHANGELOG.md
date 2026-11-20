@@ -166,6 +166,16 @@ code.
 
 ## Package releases
 
+### 0.8.7 - 2026-11-20
+
+spacecost repinned from `v0.17.1` to `v0.19.0` (its data contract 1.28.0:
+bottled-gas densities, excavation and handling energy, notes). Data contract
+unchanged at 1.22.1; no value moves. Rebuilt from `metals-2026-10-07`, all
+eight tables match `prices-2026-11-12` in every price, yield and value
+column: none of the rows that moved feeds a delivery chain. Only
+`ref_price_source`, `notes` and the contract stamp differ, as 1.22.0 and
+1.22.1 already said.
+
 ### 0.8.6 - 2026-11-19
 
 `spacevalue build` now writes `<table>.manifest.json` beside the CSV: package
